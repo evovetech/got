@@ -1,0 +1,18 @@
+.DS_Store
+local.properties
+/**/build/
+/**/captures/
+/**/.externalNativeBuild/
+/**/.gradle/
+/**/.bitrise.secrets.yml
+
+# Android Studio
+*.iml
+/**/.idea/*
+!/**/.idea/vcs.xml
+!/**/.idea/copyright/
+!/**/.idea/inspectionProfiles/
+!/**/.idea/codeStyleSettings.xml
+
+/**/vendor/
+/**/bin/

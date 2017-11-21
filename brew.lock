@@ -1,0 +1,12 @@
+go_resource "github.com/inconshreveable/mousetrap" do
+  url "https://github.com/inconshreveable/mousetrap", :using => :git, :revision => "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+end
+
+go_resource "github.com/spf13/cobra" do
+  url "https://github.com/spf13/cobra", :using => :git, :revision => "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+end
+
+go_resource "github.com/spf13/pflag" do
+  url "https://github.com/spf13/pflag", :using => :git, :revision => "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+end
+
