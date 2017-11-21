@@ -122,11 +122,7 @@ func (m *Merger) RunE() error {
 	return err
 }
 
-func (m *Merger) trySimpleMerge() (err error) {
+func (m *Merger) trySimpleMerge() error {
 	simple := NewStep(m.HeadRef, m.MergeRef, merge.NONE)
-	if err = simple.RunE(); err == nil {
-		// TODO: For now reset
-		simple.reset()
-	}
-	return
+	return simple.RunE()
 }
