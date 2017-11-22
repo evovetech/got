@@ -24,6 +24,13 @@ import (
 
 type Runner int8
 
+type PreRunStep interface {
+	PreRun() error
+}
+type RunStep interface {
+	Run() (RunStep, error)
+}
+
 var (
 	runner Runner
 )
@@ -43,11 +50,24 @@ func (r *Runner) Run(args Args) error {
 	if headRef, err = git.ParseRef("HEAD"); err != nil {
 		return err
 	}
+
 	merger := &Merger{headRef, mergeRef, args.Strategy}
 
 	fmt.Printf("merger: %s\n", merger)
 
-	return merger.RunE()
+	var next RunStep = merger
+	for next != nil {
+		if pre, ok := next.(PreRunStep); ok {
+			if err := pre.PreRun(); err != nil {
+				return err
+			}
+		}
+		if next, err = next.Run(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func CheckStatus() error {
