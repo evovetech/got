@@ -17,16 +17,12 @@
 package merge
 
 import (
-	"fmt"
-
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
-	"github.com/spf13/cobra"
 )
 
 type Merger struct {
-	cmd      *cobra.Command
 	HeadRef  git.Ref
 	MergeRef git.Ref
 	Strategy merge.Strategy
@@ -37,9 +33,6 @@ func (m *Merger) String() string {
 }
 
 func (m *Merger) RunE() error {
-	// TODO:
-	fmt.Printf("merger: %s\n", m)
-
 	if err := m.trySimpleMerge(); err == nil {
 		// done
 		return nil

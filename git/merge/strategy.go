@@ -19,6 +19,7 @@ package merge
 import (
 	"fmt"
 
+	"encoding/json"
 	"github.com/spf13/pflag"
 	"strings"
 )
@@ -75,4 +76,9 @@ func (s *Strategy) AddTo(f *pflag.FlagSet) *pflag.Flag {
 	// set default
 	*s = THEIRS
 	return f.VarPF(s, "strategy", "s", "strategy")
+}
+
+// Json
+func (s Strategy) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
 }

@@ -17,22 +17,25 @@
 package merge
 
 import (
+	"github.com/evovetech/got/git/merge"
+	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
 )
 
-var args Args
-var Cmd = &cobra.Command{
-	Use:   "merge",
-	Short: "Merge [BRANCH] into HEAD",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, a []string) error {
-		if err := args.Parse(a); err != nil {
-			return err
-		}
-		return runner.Run(args)
-	},
+type Args struct {
+	Strategy merge.Strategy
+	Branch   string
 }
 
-func init() {
-	args.Init(Cmd)
+func (args *Args) Init(cmd *cobra.Command) {
+	args.Strategy.AddTo(cmd.Flags())
+}
+
+func (args *Args) Parse(a []string) error {
+	args.Branch = a[0]
+	return nil
+}
+
+func (args Args) String() string {
+	return util.String(args)
 }

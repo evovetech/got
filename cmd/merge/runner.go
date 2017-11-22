@@ -20,42 +20,33 @@ import (
 	"fmt"
 
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/merge"
-	"github.com/spf13/cobra"
 )
 
-type Runner struct {
-	cmd  *cobra.Command
-	Args Args
-}
+type Runner int8
 
-type Args struct {
-	Strategy merge.Strategy
-	Branch   string
-}
+var (
+	runner Runner
+)
 
-func NewRunner(cmd *cobra.Command, strategy merge.Strategy, branch string) *Runner {
-	return &Runner{
-		cmd:  cmd,
-		Args: Args{strategy, branch},
-	}
-}
+func (r *Runner) Run(args Args) error {
+	fmt.Printf("args: %s\n", args)
 
-func (r *Runner) RunE() error {
 	var err error
 	if err = CheckStatus(); err != nil {
 		return err
 	}
 
 	var headRef, mergeRef git.Ref
-	args := r.Args
 	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
 		return err
 	}
 	if headRef, err = git.ParseRef("HEAD"); err != nil {
 		return err
 	}
-	merger := &Merger{r.cmd, headRef, mergeRef, args.Strategy}
+	merger := &Merger{headRef, mergeRef, args.Strategy}
+
+	fmt.Printf("merger: %s\n", merger)
+
 	return merger.RunE()
 }
 
