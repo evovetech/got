@@ -62,6 +62,18 @@ func (r Ref) Merge() *MergeCmd {
 	return cmd
 }
 
+func (r Ref) Delete() error {
+	return Command("branch", "-D", r.ShortName()).Run()
+}
+
+func (r *Ref) Update() (err error) {
+	var up Ref
+	if up, err = ParseRef(r.Name.Full); err == nil {
+		*r = up
+	}
+	return
+}
+
 func ParseRef(ref string) (r Ref, err error) {
 	parse := RevParse(ref)
 	refName := parse.SymbolicFullName()

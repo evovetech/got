@@ -21,6 +21,7 @@ import (
 )
 
 var args Args
+var runner Runner
 var Cmd = &cobra.Command{
 	Use:   "merge",
 	Short: "Merge [BRANCH] into HEAD",

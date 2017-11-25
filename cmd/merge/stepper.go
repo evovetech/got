@@ -24,16 +24,11 @@ func NewStepper(steps ...*Step) *Stepper {
 	return &Stepper{steps}
 }
 
-func (s *Stepper) RunE() (err error) {
-	j := -1
-	for i, step := range s.steps {
-		if err = step.RunE(); err != nil {
-			j = i - 1
-			break
+func (s *Stepper) RunE() error {
+	for _, step := range s.steps {
+		if err := step.RunE(); err != nil {
+			return err
 		}
 	}
-	for ; j >= 0; j-- {
-		s.steps[j].reset()
-	}
-	return
+	return nil
 }

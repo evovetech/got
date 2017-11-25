@@ -26,58 +26,20 @@ import (
 )
 
 type Step struct {
-	MergeHead   git.Ref
+	Branch      branchRef
 	MergeTarget git.Ref
 	Strategy    merge.Strategy
-
-	branch    string
-	branchRef git.Ref
-	msg       string
-	err       error
 }
 
-func NewStep(mergeHead git.Ref, mergeTarget git.Ref, strategy merge.Strategy) *Step {
+func NewStep(branch branchRef, mergeTarget git.Ref, strategy merge.Strategy) *Step {
 	return &Step{
-		MergeHead:   mergeHead,
+		Branch:      branch,
 		MergeTarget: mergeTarget,
 		Strategy:    strategy,
 	}
 }
 
-func (s *Step) RunE() (err error) {
-	if s.Strategy == merge.NONE {
-		err = s.runSimple()
-	} else {
-		err = s.runComplex()
-	}
-	if err != nil {
-		s.reset()
-	}
-	return
-}
-
-func (s *Step) reset() {
-	head := s.MergeHead
-	if e := head.Checkout(); e == nil {
-		head.Reset().Hard()
-	}
-	s.deleteBranch()
-}
-
-func (s *Step) runSimple() error {
-	if err := s.MergeHead.Checkout(); err != nil {
-		return err
-	}
-	m := s.MergeTarget.Merge()
-	m.IgnoreAllSpace()
-	err := m.Run()
-	if err != nil {
-		git.Merge().Abort()
-	}
-	return err
-}
-
-func (s *Step) runComplex() error {
+func (s *Step) RunE() error {
 	if err := util.RunAll(s.checkout, s.updateBranchRef); err != nil {
 		return err
 	}
@@ -129,7 +91,7 @@ func (s *Step) resolveFile(file string) error {
 	}
 	switch {
 	case reDD.MatchString(status):
-		err = git.ResolveRm(file).Run()
+		err = git.Add(file).Run()
 	case st == merge.OURS:
 		err = s.resolveOurs(file, status)
 	case st == merge.THEIRS:
@@ -163,45 +125,28 @@ func (s *Step) commit() error {
 }
 
 func (s *Step) checkout() error {
-	err := s.err
-	if err != nil {
-		return err
-	} else if err = CheckStatus(); err != nil {
-		s.err = err
+	if err := CheckStatus(); err != nil {
 		return err
 	}
 
 	checkout := git.Checkout()
-	branch := s.branch
-	if branch == "" {
-		branch = fmt.Sprintf("%s_merge_%s", s.MergeHead.ShortName(), s.MergeTarget.ShortSha())
-		checkout.AddOption("-b", branch)
-		checkout.AddArg(s.MergeHead.ShortSha())
-	} else {
-		checkout.AddArg(branch)
-	}
-	if err = checkout.Run(); err != nil {
-		s.err = err
-		return err
-	}
-	s.branch = branch
-	return nil
+	checkout.AddArg(s.Branch.Name)
+	return checkout.Run()
 }
 
 func (s *Step) updateBranchRef() error {
 	// update ref and msg
 	var err error
 	var branchRef git.Ref
-	if branchRef, err = git.ParseRef(s.branch); err != nil {
-		s.err = err
+	if branchRef, err = git.ParseRef(s.Branch.Name); err != nil {
 		return err
 	}
-	s.branchRef = branchRef
+	s.Branch.Ref = branchRef
 	return nil
 }
 
 func (s *Step) deleteBranch() error {
-	b := s.branch
+	b := s.Branch.Name
 	if b != "" {
 		if err := git.Command("branch", "-D", b).Run(); err != nil {
 			return err
@@ -210,17 +155,13 @@ func (s *Step) deleteBranch() error {
 	return nil
 }
 
-func (s *Step) getMsg() (msg string) {
-	if msg = s.msg; msg == "" {
-		head := s.MergeHead.ShortName()
-		target := s.MergeTarget.ShortName()
-		format := "merge %s into %s -- CONFLICTS -- resolving with %s changes"
-		resolve := target
-		if s.Strategy == merge.OURS {
-			resolve = head
-		}
-		msg = fmt.Sprintf(format, target, head, resolve)
-		s.msg = msg
+func (s *Step) getMsg() string {
+	head := s.Branch.Name
+	target := s.MergeTarget.ShortName()
+	format := "merge %s into %s -- CONFLICTS -- resolving with %s changes"
+	resolve := target
+	if s.Strategy == merge.OURS {
+		resolve = head
 	}
-	return
+	return fmt.Sprintf(format, target, head, resolve)
 }

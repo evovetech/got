@@ -30,32 +30,15 @@ type PreRunStep interface {
 type RunStep interface {
 	Run() (RunStep, error)
 }
+type beginStep struct {
+	PreRunStep
+	RunStep
 
-var (
-	runner Runner
-)
+	args Args
+}
 
-func (r *Runner) Run(args Args) error {
-	fmt.Printf("args: %s\n", args)
-
-	var err error
-	if err = CheckStatus(); err != nil {
-		return err
-	}
-
-	var headRef, mergeRef git.Ref
-	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
-		return err
-	}
-	if headRef, err = git.ParseRef("HEAD"); err != nil {
-		return err
-	}
-
-	merger := &Merger{headRef, mergeRef, args.Strategy}
-
-	fmt.Printf("merger: %s\n", merger)
-
-	var next RunStep = merger
+func (r *Runner) Run(args Args) (err error) {
+	next := beginMerge(args)
 	for next != nil {
 		if pre, ok := next.(PreRunStep); ok {
 			if err := pre.PreRun(); err != nil {
@@ -66,8 +49,32 @@ func (r *Runner) Run(args Args) error {
 			return err
 		}
 	}
-
 	return nil
+}
+
+func beginMerge(args Args) RunStep {
+	return &beginStep{args: args}
+}
+
+func (s *beginStep) PreRun() error {
+	return CheckStatus()
+}
+
+func (s *beginStep) Run() (merger RunStep, err error) {
+	args := s.args
+	fmt.Printf("args: %s\n", args)
+	var headRef, mergeRef git.Ref
+	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
+		return
+	}
+	if headRef, err = git.ParseRef("HEAD"); err != nil {
+		return
+	}
+
+	merger = &Merger{headRef, mergeRef, args.Strategy}
+
+	fmt.Printf("merger: %s\n", merger)
+	return
 }
 
 func CheckStatus() error {

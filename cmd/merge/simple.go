@@ -11,19 +11,10 @@ func (s *simple) Run() (RunStep, error) {
 
 	m := s.MergeRef.Merge()
 	m.IgnoreAllSpace()
-	if err := m.Run(); err == nil {
-		return nil, nil
+	if err := m.Run(); err != nil {
+		git.Merge().Abort()
+		return (*multi)(s).Run()
 	}
 
-	s.reset()
-
-	return (*multi)(s).Run()
-}
-
-func (s *simple) reset() {
-	git.Merge().Abort()
-	head := s.HeadRef
-	if e := head.Checkout(); e == nil {
-		head.Reset().Hard()
-	}
+	return nil, nil
 }
