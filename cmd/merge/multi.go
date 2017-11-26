@@ -11,8 +11,9 @@ import (
 type multi Merger
 
 type branchRef struct {
-	Name string
-	Ref  git.Ref
+	OrigName string
+	Name     string
+	Ref      git.Ref
 }
 
 func getBranchRef(ours git.Ref, theirs git.Ref) (*branchRef, error) {
@@ -23,7 +24,7 @@ func getBranchRef(ours git.Ref, theirs git.Ref) (*branchRef, error) {
 	if ref, err := git.ParseRef(name); err != nil {
 		return nil, err
 	} else {
-		return &branchRef{name, ref}, nil
+		return &branchRef{ours.ShortName(), name, ref}, nil
 	}
 }
 
@@ -115,13 +116,13 @@ func (m *multi) Run() (RunStep, error) {
 
 func (m *multiStep) RunE() error {
 	st := m.strategy
-	step1 := NewStep(m.ours, m.theirs.Ref, st)
-	step2 := NewStep(m.theirs, m.ours.Ref, st)
+	step1 := NewStep(m.ours, m.theirs, st)
+	step2 := NewStep(m.theirs, m.ours, st)
 	steps := NewStepper(step1, step2)
 	return steps.RunE()
 }
 
 func (m *multiStep) RunLast() error {
-	lastStep := NewStep(m.ours, m.theirs.Ref, merge.THEIRS)
+	lastStep := NewStep(m.ours, m.theirs, merge.THEIRS)
 	return lastStep.RunE()
 }

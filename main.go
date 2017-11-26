@@ -17,9 +17,13 @@
 package main
 
 import (
+	"os"
+
 	got "github.com/evovetech/got/cmd"
 )
 
 func main() {
-	got.Execute()
+	if err := got.Cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

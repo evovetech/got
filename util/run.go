@@ -16,7 +16,7 @@
 
 package util
 
-func RunAll(funcs ...(func() error)) (err error) {
+func RunAll(funcs ...func() error) (err error) {
 	for _, f := range funcs {
 		if err = f(); err != nil {
 			return

@@ -26,16 +26,16 @@ import (
 )
 
 type Step struct {
-	Branch      branchRef
-	MergeTarget git.Ref
-	Strategy    merge.Strategy
+	Branch   branchRef
+	Target   branchRef
+	Strategy merge.Strategy
 }
 
-func NewStep(branch branchRef, mergeTarget git.Ref, strategy merge.Strategy) *Step {
+func NewStep(branch branchRef, target branchRef, strategy merge.Strategy) *Step {
 	return &Step{
-		Branch:      branch,
-		MergeTarget: mergeTarget,
-		Strategy:    strategy,
+		Branch:   branch,
+		Target:   target,
+		Strategy: strategy,
 	}
 }
 
@@ -45,13 +45,13 @@ func (s *Step) RunE() error {
 	}
 
 	// git merge --no-commit -X "$cmd" "$merge_commit"
-	m := s.MergeTarget.Merge()
+	m := s.Target.Ref.Merge()
 	m.NoCommit()
 	m.Strategy = s.Strategy
 	if err := m.Run(); err != nil {
 		if err := s.resolveUnmerged(); err != nil {
 			git.Merge().Abort()
-			return fmt.Errorf("could not merge %s: %s", s.MergeTarget.ShortName(), err.Error())
+			return fmt.Errorf("could not merge %s: %s", s.Target.Name, err.Error())
 		}
 	}
 
@@ -156,8 +156,8 @@ func (s *Step) deleteBranch() error {
 }
 
 func (s *Step) getMsg() string {
-	head := s.Branch.Name
-	target := s.MergeTarget.ShortName()
+	head := s.Branch.OrigName
+	target := s.Target.OrigName
 	format := "merge %s into %s -- CONFLICTS -- resolving with %s changes"
 	resolve := target
 	if s.Strategy == merge.OURS {

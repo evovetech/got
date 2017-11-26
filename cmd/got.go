@@ -17,8 +17,6 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/evovetech/got/cmd/merge"
 	"github.com/evovetech/got/cmd/version"
 	"github.com/spf13/cobra"
@@ -26,12 +24,6 @@ import (
 
 var Cmd = &cobra.Command{
 	Use: "got",
-}
-
-func Execute() {
-	if err := Cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
 }
 
 func init() {
