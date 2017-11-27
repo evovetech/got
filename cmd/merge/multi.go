@@ -64,8 +64,6 @@ func (m *multi) Run() (RunStep, error) {
 	if theirs, err = getBranchRef(m.MergeRef, m.HeadRef); err != nil {
 		return nil, err
 	}
-	fmt.Printf("ours: %s\n", ours)
-	fmt.Printf("theirs: %s\n", theirs)
 	reset := func(err error) (RunStep, error) {
 		git.Merge().Abort()
 		m.HeadRef.Checkout()

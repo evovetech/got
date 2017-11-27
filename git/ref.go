@@ -19,6 +19,7 @@ package git
 import (
 	"fmt"
 
+	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 )
 
@@ -84,6 +85,7 @@ func ParseRef(ref string) (r Ref, err error) {
 				Commit: CommitSha{refInfo.FullName, refInfo.ShortName},
 				Info:   refInfo,
 			}
+			log.Printf("Ref %s\n", r)
 			return
 		}
 	}

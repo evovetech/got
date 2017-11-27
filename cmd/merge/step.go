@@ -18,8 +18,8 @@ package merge
 
 import (
 	"fmt"
-	"regexp"
 
+	"github.com/evovetech/got/cmd/resolve"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
@@ -49,75 +49,13 @@ func (s *Step) RunE() error {
 	m.NoCommit()
 	m.Strategy = s.Strategy
 	if err := m.Run(); err != nil {
-		if err := s.resolveUnmerged(); err != nil {
+		if err := resolve.Run(s.Strategy); err != nil {
 			git.Merge().Abort()
 			return fmt.Errorf("could not merge %s: %s", s.Target.Name, err.Error())
 		}
 	}
 
 	return s.commit()
-}
-
-var reDD = regexp.MustCompile("^(DD)")
-var reDeletedOurs = regexp.MustCompile("^(D|UA)")
-var reDeletedTheirs = regexp.MustCompile("^(.D|AU)")
-
-func (s *Step) resolveUnmerged() error {
-	//git diff --name-only --diff-filter=UXB
-	var errors []error
-	diff := git.Command("diff", "--name-only", "--diff-filter=UXB")
-	for _, file := range diff.OutputLines() {
-		if err := s.resolveFile(file); err != nil {
-			errors = append(errors, err)
-		}
-	}
-
-	if len(errors) > 0 {
-		var errString string
-		for _, err := range errors {
-			errString += fmt.Sprintln(err.Error())
-		}
-		return fmt.Errorf("%s", errString)
-	}
-	return nil
-}
-
-func (s *Step) resolveFile(file string) error {
-	var err error
-	st := s.Strategy
-	status, err := git.Status(file).Output()
-	if err != nil {
-		return err
-	}
-	switch {
-	case reDD.MatchString(status):
-		err = git.Add(file).Run()
-	case st == merge.OURS:
-		err = s.resolveOurs(file, status)
-	case st == merge.THEIRS:
-		err = s.resolveTheirs(file, status)
-	default:
-		err = fmt.Errorf("unknown strategy: ")
-	}
-	return err
-}
-
-func (s *Step) resolveOurs(file string, status string) error {
-	switch {
-	case reDeletedOurs.MatchString(status):
-		return git.ResolveRm(file).Run()
-	default:
-		return git.ResolveCheckout(file, merge.OURS).Run()
-	}
-}
-
-func (s *Step) resolveTheirs(file string, status string) error {
-	switch {
-	case reDeletedTheirs.MatchString(status):
-		return git.ResolveRm(file).Run()
-	default:
-		return git.ResolveCheckout(file, merge.THEIRS).Run()
-	}
 }
 
 func (s *Step) commit() error {

@@ -4,6 +4,8 @@ paths=(
     "cmd"
     "git"
     "got"
+    "log"
+    "options"
     "util"
     "main.go"
 )

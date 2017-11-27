@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/log"
 )
 
 type Runner int8
@@ -62,7 +63,7 @@ func (s *beginStep) PreRun() error {
 
 func (s *beginStep) Run() (merger RunStep, err error) {
 	args := s.args
-	fmt.Printf("args: %s\n", args)
+	log.Printf("args: %s\n", args)
 	var headRef, mergeRef git.Ref
 	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
 		return
@@ -73,7 +74,7 @@ func (s *beginStep) Run() (merger RunStep, err error) {
 
 	merger = &Merger{headRef, mergeRef, args.Strategy}
 
-	fmt.Printf("merger: %s\n", merger)
+	log.Printf("merger: %s\n", merger)
 	return
 }
 

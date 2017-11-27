@@ -19,17 +19,23 @@ package git
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/evovetech/got/log"
 )
 
 func Run(cmd *exec.Cmd) (err error) {
 	var errOut bytes.Buffer
 	cmd.Stderr = &errOut
-	fmt.Printf("$ %s\n", strings.Join(cmd.Args, " "))
+	if cmd.Stdout == nil {
+		cmd.Stdout = log.Verbose
+	}
+	log.Verbose.Printf("$ %s\n", strings.Join(cmd.Args, " "))
 	if err = cmd.Run(); err != nil {
-		fmt.Print(errOut.String())
+		for s := bufio.NewScanner(&errOut); s.Scan(); {
+			log.Err.Write(s.Bytes())
+		}
 	}
 	return
 }

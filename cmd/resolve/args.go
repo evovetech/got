@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package cmd
+package resolve
 
 import (
-	"github.com/evovetech/got/cmd/merge"
-	"github.com/evovetech/got/cmd/resolve"
-	"github.com/evovetech/got/cmd/version"
-	"github.com/evovetech/got/options"
-	"github.com/spf13/cobra"
+	"github.com/evovetech/got/git/merge"
+	"github.com/evovetech/got/util"
 )
 
-var Cmd = &cobra.Command{
-	Use: "got",
+type Args struct {
+	Strategy merge.Strategy
 }
 
-func init() {
-	Cmd.AddCommand(
-		merge.Cmd,
-		resolve.Cmd,
-		version.Cmd,
-	)
-	options.AddTo(Cmd)
+func (args *Args) Parse(a []string) error {
+	return args.Strategy.Set(a[0])
+}
+
+func (args Args) String() string {
+	return util.String(args)
 }
