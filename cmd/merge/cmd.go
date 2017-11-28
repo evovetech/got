@@ -21,7 +21,6 @@ import (
 )
 
 var args Args
-var runner Runner
 var Cmd = &cobra.Command{
 	Use:   "merge",
 	Short: "Merge [BRANCH] into HEAD",
@@ -30,7 +29,7 @@ var Cmd = &cobra.Command{
 		if err := args.Parse(a); err != nil {
 			return err
 		}
-		return runner.Run(args)
+		return Run(args)
 	},
 }
 

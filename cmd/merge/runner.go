@@ -23,8 +23,6 @@ import (
 	"github.com/evovetech/got/log"
 )
 
-type Runner int8
-
 type PreRunStep interface {
 	PreRun() error
 }
@@ -38,7 +36,7 @@ type beginStep struct {
 	args Args
 }
 
-func (r *Runner) Run(args Args) (err error) {
+func Run(args Args) (err error) {
 	next := beginMerge(args)
 	for next != nil {
 		if pre, ok := next.(PreRunStep); ok {

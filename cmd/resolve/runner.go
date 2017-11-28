@@ -23,6 +23,7 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 )
 
 var reDD = regexp.MustCompile("^(DD)")
@@ -38,15 +39,7 @@ func Run(st merge.Strategy) error {
 			errors = append(errors, err)
 		}
 	}
-
-	if len(errors) > 0 {
-		var errString string
-		for _, err := range errors {
-			errString += fmt.Sprintln(err.Error())
-		}
-		return fmt.Errorf("%s", errString)
-	}
-	return nil
+	return util.CompositeError(errors)
 }
 
 func resolveFile(file string, st merge.Strategy) error {
