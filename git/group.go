@@ -16,19 +16,29 @@
 
 package git
 
-import "os/exec"
+type funcGroup []func() error
+type cmdGroup []Runner
 
-type CmdGroup struct {
-	cmds []*exec.Cmd
+func FuncGroup(funcs ...func() error) Runner {
+	return funcGroup(funcs)
 }
 
-func Group(cmds ...*exec.Cmd) *CmdGroup {
-	return &CmdGroup{cmds}
+func Group(cmds ...Runner) Runner {
+	return cmdGroup(cmds)
 }
 
-func (g *CmdGroup) Run() error {
-	for _, cmd := range g.cmds {
+func (g cmdGroup) Run() error {
+	for _, cmd := range g {
 		if e := Run(cmd); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+func (g funcGroup) Run() error {
+	for _, f := range g {
+		if e := Run(ToRunner(f)); e != nil {
 			return e
 		}
 	}

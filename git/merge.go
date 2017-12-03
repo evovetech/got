@@ -62,12 +62,16 @@ func (m *MergeCmd) FFOnly() {
 }
 
 func (m *MergeCmd) Build() *exec.Cmd {
+	m.cmd.AddOption("-s", "recursive")
 	if st := m.Strategy; st != merge.NONE {
 		m.cmd.AddOption("-X", st.String())
 	}
 	for _, o := range m.StrategyOptions {
 		m.cmd.AddOption("-X", o)
 	}
+	m.cmd.AddOption("-X", "diff-algorithm=histogram")
+	m.cmd.AddOption("-X", "find-renames=75%")
+	m.cmd.AddOption("-X", "ignore-all-space")
 	m.cmd.AddArg(m.MergeRef)
 	return m.cmd.Build()
 }

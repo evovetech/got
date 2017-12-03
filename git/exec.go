@@ -23,16 +23,32 @@ import (
 	"strings"
 
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/options"
+	"github.com/evovetech/got/util"
 )
 
-func Run(cmd *exec.Cmd) (err error) {
-	var errOut bytes.Buffer
-	cmd.Stderr = &errOut
-	if cmd.Stdout == nil {
-		cmd.Stdout = log.Verbose
+func Run(cmd Runner) error {
+	if c, ok := cmd.(*Cmd); ok {
+		return RunCmd(c)
+	} else if c, ok := cmd.(*exec.Cmd); ok {
+		return RunExecCmd(c)
 	}
+	return cmd.Run()
+}
+
+func RunCmd(cmd *Cmd) (err error) {
+	return RunExecCmd(cmd.Build())
+}
+
+func RunExecCmd(cmd *exec.Cmd) (err error) {
+	var errOut bytes.Buffer
+	cmd.Stderr = util.CompositeWriter(&errOut, log.Verbose)
+	cmd.Stdout = util.CompositeWriter(cmd.Stdout, log.Verbose)
 	log.Verbose.Printf("$ %s\n", strings.Join(cmd.Args, " "))
 	if err = cmd.Run(); err != nil {
+		if options.Verbose {
+			return
+		}
 		for s := bufio.NewScanner(&errOut); s.Scan(); {
 			log.Err.Write(s.Bytes())
 		}

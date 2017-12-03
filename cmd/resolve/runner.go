@@ -31,7 +31,8 @@ var reDeletedOurs = regexp.MustCompile("^(D|UA)")
 var reDeletedTheirs = regexp.MustCompile("^(.D|AU)")
 
 func Run(st merge.Strategy) error {
-	//git diff --name-only --diff-filter=UXB
+	git.Command("checkout-index", "-n", "-f", "-a").Run()
+	git.Command("update-index", "--ignore-missing", "--refresh").Run()
 	var errors []error
 	diff := git.Command("diff", "--name-only", "--diff-filter=UXB")
 	for _, file := range diff.OutputLines() {
@@ -44,14 +45,14 @@ func Run(st merge.Strategy) error {
 
 func resolveFile(file string, st merge.Strategy) error {
 	var err error
-	status, err := git.Status(file).Output()
+	status, err := git.StatusCmd(file).Output()
 	if err != nil {
 		return err
 	}
-	log.Print(status)
+	log.Printf("unresolved: %s", status)
 	switch {
 	case reDD.MatchString(status):
-		err = git.Add(file).Run()
+		err = git.Add(file, "-u")
 	case st == merge.OURS:
 		err = resolveOurs(file, status)
 	case st == merge.THEIRS:
@@ -59,23 +60,24 @@ func resolveFile(file string, st merge.Strategy) error {
 	default:
 		err = fmt.Errorf("unknown strategy: ")
 	}
+	log.Printf("resolved: %s", git.StatusCmd(file).OutputString())
 	return err
 }
 
 func resolveOurs(file string, status string) error {
 	switch {
 	case reDeletedOurs.MatchString(status):
-		return git.ResolveRm(file).Run()
+		return git.ResolveRmCmd(file).Run()
 	default:
-		return git.ResolveCheckout(file, merge.OURS).Run()
+		return git.ResolveCheckoutCmd(file, merge.OURS).Run()
 	}
 }
 
 func resolveTheirs(file string, status string) error {
 	switch {
 	case reDeletedTheirs.MatchString(status):
-		return git.ResolveRm(file).Run()
+		return git.ResolveRmCmd(file).Run()
 	default:
-		return git.ResolveCheckout(file, merge.THEIRS).Run()
+		return git.ResolveCheckoutCmd(file, merge.THEIRS).Run()
 	}
 }

@@ -39,7 +39,7 @@ func NewStep(branch branchRef, target branchRef, strategy merge.Strategy) *Step 
 	}
 }
 
-func (s *Step) RunE() error {
+func (s *Step) Run() error {
 	if err := util.RunAll(s.checkout, s.updateBranchRef); err != nil {
 		return err
 	}
@@ -50,9 +50,13 @@ func (s *Step) RunE() error {
 	m.Strategy = s.Strategy
 	if err := m.Run(); err != nil {
 		if err := resolve.Run(s.Strategy); err != nil {
-			git.Merge().Abort()
+			git.AbortMerge()
 			return fmt.Errorf("could not merge %s: %s", s.Target.Name, err.Error())
 		}
+	}
+
+	if err := git.RemoveUntracked(); err != nil {
+		return err
 	}
 
 	return s.commit()
@@ -63,13 +67,7 @@ func (s *Step) commit() error {
 }
 
 func (s *Step) checkout() error {
-	if err := CheckStatus(); err != nil {
-		return err
-	}
-
-	checkout := git.Checkout()
-	checkout.AddArg(s.Branch.Name)
-	return checkout.Run()
+	return s.Branch.Ref.Checkout()
 }
 
 func (s *Step) updateBranchRef() error {
@@ -94,12 +92,12 @@ func (s *Step) deleteBranch() error {
 }
 
 func (s *Step) getMsg() string {
-	head := s.Branch.OrigName
-	target := s.Target.OrigName
+	head := s.Branch.Ref.ShortSha()
+	target := s.Target.Ref.ShortSha()
 	format := "merge %s into %s -- CONFLICTS -- resolving with %s changes"
-	resolve := target
+	res := target
 	if s.Strategy == merge.OURS {
-		resolve = head
+		res = head
 	}
-	return fmt.Sprintf(format, target, head, resolve)
+	return fmt.Sprintf(format, target, head, res)
 }

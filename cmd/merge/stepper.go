@@ -16,17 +16,15 @@
 
 package merge
 
-type Stepper struct {
-	steps []*Step
+type Stepper []*Step
+
+func NewStepper(steps ...*Step) Stepper {
+	return Stepper(steps)
 }
 
-func NewStepper(steps ...*Step) *Stepper {
-	return &Stepper{steps}
-}
-
-func (s *Stepper) RunE() error {
-	for _, step := range s.steps {
-		if err := step.RunE(); err != nil {
+func (s Stepper) Run() error {
+	for _, step := range s {
+		if err := step.Run(); err != nil {
 			return err
 		}
 	}

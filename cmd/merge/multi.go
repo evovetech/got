@@ -65,7 +65,7 @@ func (m *multi) Run() (RunStep, error) {
 		return nil, err
 	}
 	reset := func(err error) (RunStep, error) {
-		git.Merge().Abort()
+		git.AbortMerge()
 		m.HeadRef.Checkout()
 		m.HeadRef.Reset().Hard()
 		ours.Ref.Delete()
@@ -74,18 +74,22 @@ func (m *multi) Run() (RunStep, error) {
 	}
 
 	// first merge
-	s1 := &multiStep{m, *ours, *theirs, m.Strategy}
+	st := merge.THEIRS
+	if m.Strategy == merge.THEIRS {
+		st = merge.OURS
+	}
+	s1 := &multiStep{m, *ours, *theirs, st}
 	if err := s1.RunE(); err != nil {
 		return reset(err)
 	}
 
-	// second merge
-	if err := s1.Update(merge.THEIRS); err != nil {
-		return reset(err)
-	}
-	if err := s1.RunE(); err != nil {
-		return reset(err)
-	}
+	//// second merge
+	//if err := s1.Update(merge.THEIRS); err != nil {
+	//	return reset(err)
+	//}
+	//if err := s1.RunE(); err != nil {
+	//	return reset(err)
+	//}
 
 	// final merge
 	if err := s1.Update(merge.THEIRS); err != nil {
@@ -117,10 +121,10 @@ func (m *multiStep) RunE() error {
 	step1 := NewStep(m.ours, m.theirs, st)
 	step2 := NewStep(m.theirs, m.ours, st)
 	steps := NewStepper(step1, step2)
-	return steps.RunE()
+	return steps.Run()
 }
 
 func (m *multiStep) RunLast() error {
 	lastStep := NewStep(m.ours, m.theirs, merge.THEIRS)
-	return lastStep.RunE()
+	return lastStep.Run()
 }

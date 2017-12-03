@@ -17,8 +17,6 @@
 package merge
 
 import (
-	"fmt"
-
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 )
@@ -56,7 +54,7 @@ func beginMerge(args Args) RunStep {
 }
 
 func (s *beginStep) PreRun() error {
-	return CheckStatus()
+	return git.CheckStatus()
 }
 
 func (s *beginStep) Run() (merger RunStep, err error) {
@@ -74,15 +72,4 @@ func (s *beginStep) Run() (merger RunStep, err error) {
 
 	log.Printf("merger: %s\n", merger)
 	return
-}
-
-func CheckStatus() error {
-	// check git status/diff on HEAD and bail if there are changes
-	status, err := git.Command("status", "-s").Output()
-	if err != nil {
-		return err
-	} else if status != "" {
-		return fmt.Errorf("please stash or commit changes before merging")
-	}
-	return nil
 }

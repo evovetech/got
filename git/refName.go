@@ -34,7 +34,7 @@ func (r RefName) String() string {
 }
 
 func (r RefName) Checkout() error {
-	return Checkout(r.Short).Run()
+	return Checkout(r.Short)
 }
 
 func ParseRefName(fullName string) RefName {

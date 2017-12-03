@@ -18,37 +18,91 @@ package git
 
 import (
 	"os/exec"
+	"regexp"
 
+	"fmt"
 	"github.com/evovetech/got/git/merge"
+	"github.com/evovetech/got/util"
 )
+
+var reUU = regexp.MustCompile("^(\\?\\?) (.*)")
 
 func SymbolicRef(ref string) string {
 	cmd := Command("symbolic-ref", "--short", ref)
 	return cmd.OutputString()
 }
 
-func Status(file string) *Cmd {
+func StatusCmd(file string) *Cmd {
 	return Command("status", "-s", "--", file)
 }
 
-func Add(file string) *Cmd {
-	return Command("add", "--", file)
+func AddCmd(file string, options ...string) *Cmd {
+	options = append(options, "--", file)
+	return Command("add", options...)
 }
 
-func Checkout(args ...string) *Cmd {
+func Add(file string, options ...string) error {
+	return AddCmd(file, options...).Run()
+}
+
+func CheckoutCmd(args ...string) *Cmd {
 	return Command("checkout", args...)
 }
 
-func ResolveRm(file string) *CmdGroup {
+func Checkout(args ...string) error {
+	err := FuncGroup(
+		CheckStatus,
+		CheckoutCmd(args...).Run,
+		Command("reset", "--soft", "HEAD").Run,
+		CheckStatus,
+	).Run()
+	return err
+}
+
+func ResolveRmCmd(file string) Runner {
 	return Group(
 		exec.Command("rm", file),
-		Add(file).Build(),
+		AddCmd(file, "-u"),
 	)
 }
 
-func ResolveCheckout(file string, s merge.Strategy) *CmdGroup {
+func ResolveCheckoutCmd(file string, s merge.Strategy) Runner {
 	return Group(
-		Checkout(s.Option(), "--", file).Build(),
-		Add(file).Build(),
+		CheckoutCmd(s.Option(), "--", file),
+		AddCmd(file, "-u"),
 	)
+}
+
+func AbortMerge() error {
+	return FuncGroup(
+		Merge().Abort,
+		RemoveUntracked,
+	).Run()
+}
+
+func RemoveUntracked() error {
+	var errors []error
+	diff := Command("status", "-s", "--untracked-files=all")
+	for _, status := range diff.OutputLines() {
+		switch {
+		case reUU.MatchString(status):
+			match := reUU.FindStringSubmatch(status)
+			cmd := exec.Command("rm", match[2])
+			if err := Run(cmd); err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+	return util.CompositeError(errors)
+}
+
+func CheckStatus() error {
+	// check git status/diff on HEAD and bail if there are changes
+	status, err := Command("status", "-s", "--untracked-files=all").Output()
+	if err != nil {
+		return err
+	} else if status != "" {
+		return fmt.Errorf("please stash or commit changes before merging")
+	}
+	return nil
 }

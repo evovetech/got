@@ -1,6 +1,8 @@
 package merge
 
-import "github.com/evovetech/got/git"
+import (
+	"github.com/evovetech/got/git"
+)
 
 type simple Merger
 
@@ -12,7 +14,9 @@ func (s *simple) Run() (RunStep, error) {
 	m := s.MergeRef.Merge()
 	m.IgnoreAllSpace()
 	if err := m.Run(); err != nil {
-		git.Merge().Abort()
+		if err = git.AbortMerge(); err != nil {
+			return nil, err
+		}
 		return (*multi)(s).Run()
 	}
 
