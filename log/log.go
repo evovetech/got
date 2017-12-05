@@ -12,13 +12,13 @@ var (
 )
 
 func Print(v interface{}) {
-	Verbose.Print(v)
+	Std.Print(v)
 }
 
 func Println(v interface{}) {
-	Verbose.Println(v)
+	Std.Println(v)
 }
 
 func Printf(format string, v ...interface{}) {
-	Verbose.Printf(format, v...)
+	Std.Printf(format, v...)
 }
