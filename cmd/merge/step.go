@@ -193,16 +193,19 @@ func (ad *AddDel) parse(firstTry bool) (*AddDel, []MvPair) {
 				undeleted = append(undeleted[:index], undeleted[index+1:]...)
 			}
 		}
-		ad2 := &AddDel{
-			Fname: ad.Fname,
-			Add:   unadded,
-			Del:   undeleted,
+		var err *AddDel
+		if len(unadded) > 0 {
+			var mv2 []MvPair
+			err, mv2 = (&AddDel{
+				Fname: ad.Fname,
+				Add:   unadded,
+				Del:   undeleted,
+			}).parse(false)
+			if len(mv2) > 0 {
+				pairs = append(pairs, mv2...)
+			}
 		}
-		_, mv2 := ad2.parse(false)
-		if len(mv2) > 0 {
-			pairs = append(pairs, mv2...)
-		}
-		return ad2, pairs
+		return err, pairs
 	}
 
 	return ad, nil
