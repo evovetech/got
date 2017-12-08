@@ -1,8 +1,6 @@
 package merge
 
-import "path"
-
-type AddDelMap map[string]*AddDel
+type AddDelMap map[string]*MvGroup
 type AddDelType int
 
 const (
@@ -25,9 +23,9 @@ func (m AddDelMap) Match(status string) bool {
 	}
 }
 
-func (m AddDelMap) Parse() (errs []*AddDel, pairs []MvPair) {
+func (m AddDelMap) Parse() (errs []*MvGroup, pairs []MvPair) {
 	for _, ad := range m {
-		if !ad.hasBoth() {
+		if !ad.IsValid() {
 			continue
 		}
 		err, mvs := ad.parse(true)
@@ -42,18 +40,16 @@ func (m AddDelMap) Parse() (errs []*AddDel, pairs []MvPair) {
 }
 
 func (m AddDelMap) do(match []string, typ AddDelType) {
-	file := match[1]
-	fName := path.Base(file)
-	fDir := path.Dir(file)
-	ad, ok := m[fName]
+	fp := NewFilePath(match[1])
+	mv, ok := m[fp.Name]
 	if !ok {
-		ad = &AddDel{Fname: fName}
-		m[fName] = ad
+		mv = &MvGroup{FileName: fp.Name}
+		m[fp.Name] = mv
 	}
 	switch typ {
 	case Add:
-		ad.add(fDir)
+		mv.Add(fp)
 	case Del:
-		ad.del(fDir)
+		mv.Del(fp)
 	}
 }

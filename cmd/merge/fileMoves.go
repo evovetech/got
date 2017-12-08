@@ -13,7 +13,7 @@ var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
 
 type FileMoves struct {
 	Renames []MvPair
-	errs    []*AddDel
+	errs    []*MvGroup
 }
 
 func getFileMoves() (*FileMoves, bool) {
@@ -53,6 +53,8 @@ func (m *FileMoves) Run() error {
 	for _, mv := range m.Renames {
 		mv.run()
 	}
-	log.Printf("errors: %s", util.String(m.errs))
+	if len(m.errs) > 0 {
+		log.Printf("errors: %s", util.String(m.errs))
+	}
 	return git.Command("commit", "-m", "moving files to prepare for merge").Run()
 }
