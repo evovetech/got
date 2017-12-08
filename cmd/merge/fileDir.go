@@ -30,7 +30,7 @@ func (d FileDir) String() string {
 
 func (d FileDir) MovedFrom(other FileDir) bool {
 	dStr := d.slashy
-	oStr := d.slashy
+	oStr := other.slashy
 	// TODO:
 	return d.Base() == other.Base() ||
 		strings.Contains(dStr, other.Base()) ||
