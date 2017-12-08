@@ -11,12 +11,12 @@ var reAdd = regexp.MustCompile("^A\\s+(.*)")
 var reDel = regexp.MustCompile("^D\\s+(.*)")
 var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
 
-type Moves struct {
+type FileMoves struct {
 	Renames []MvPair
 	errs    []*AddDel
 }
 
-func getMoves() (*Moves, bool) {
+func getFileMoves() (*FileMoves, bool) {
 	var renames []MvPair
 	var adm = make(AddDelMap)
 	for _, status := range git.Command("status", "-s", "--untracked-files=all").OutputLines() {
@@ -45,13 +45,13 @@ func getMoves() (*Moves, bool) {
 		}
 		return nil, true
 	}
-	return &Moves{
+	return &FileMoves{
 		Renames: renames,
 		errs:    errs,
 	}, false
 }
 
-func (m *Moves) Run() error {
+func (m *FileMoves) Run() error {
 	// abort merge, move files
 	git.AbortMerge()
 	for _, mv := range m.Renames {

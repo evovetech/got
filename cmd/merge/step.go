@@ -75,7 +75,7 @@ func (s *Step) Run() error {
 		return err
 	}
 
-	if m, ok := getMoves(); !ok {
+	if m, ok := getFileMoves(); !ok {
 		if err := m.Run(); err != nil {
 			return err
 		}
