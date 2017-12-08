@@ -3,24 +3,35 @@ package merge
 import "strings"
 
 type AddDelMap map[string]*MvGroup
-type AddDelType int
+type AddDelType uint32
 
 func (t AddDelType) String() string {
-	switch t {
-	case Add:
-		return "A"
-	case Del:
-		return "D"
+	var str string
+	if t.HasFlag(Rename) {
+		str += "R"
 	}
-	return "?"
+	switch {
+	case t.HasFlag(Add):
+		str += "A"
+	case t.HasFlag(Del):
+		str += "D"
+	default:
+		str += "?"
+	}
+	return str
+}
+
+func (t AddDelType) HasFlag(flag AddDelType) bool {
+	return t&flag != 0
 }
 
 const (
-	Add AddDelType = iota
+	Add AddDelType = 1 << iota
 	Del
+	Rename
 )
 
-func (m AddDelMap) Parse() (errs []*MvGroup, pairs []MvPair) {
+func (m AddDelMap) parse() (errs []*MvGroup, pairs []MvPair) {
 	for _, ad := range m {
 		if !ad.IsValid() {
 			//log.Printf("inValid: %s", ad)
@@ -42,8 +53,8 @@ func (m AddDelMap) Parse() (errs []*MvGroup, pairs []MvPair) {
 	return
 }
 
-func (m AddDelMap) do(match []string, typ AddDelType) FilePath {
-	file := strings.Trim(match[1], "\"")
+func (m AddDelMap) do(file string, typ AddDelType) FilePath {
+	file = strings.Trim(file, "\"")
 	fp := GetFilePath(file)
 	fName := fp.LoName()
 	mv, ok := m[fName]
@@ -51,10 +62,10 @@ func (m AddDelMap) do(match []string, typ AddDelType) FilePath {
 		mv = &MvGroup{FileName: fName}
 		m[fName] = mv
 	}
-	switch typ {
-	case Add:
+	switch {
+	case typ.HasFlag(Add):
 		mv.Add(fp)
-	case Del:
+	case typ.HasFlag(Del):
 		mv.Del(fp)
 	}
 	return fp

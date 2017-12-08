@@ -14,6 +14,7 @@ type FilePath struct {
 }
 
 func GetFilePath(file string) FilePath {
+	file = filepath.FromSlash(file)
 	fp := filepath.Clean(file)
 	return FilePath{
 		actual: fp,

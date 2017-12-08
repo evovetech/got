@@ -1,6 +1,7 @@
 package merge
 
 import (
+	"encoding/json"
 	"github.com/evovetech/got/util"
 	"strings"
 )
@@ -28,4 +29,8 @@ func (d FileDir) MovedFrom(other FileDir) bool {
 	return d.Base() == other.Base() ||
 		strings.Contains(dStr, other.Base()) ||
 		strings.Contains(oStr, d.Base())
+}
+
+func (d FileDir) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.actual)
 }

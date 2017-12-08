@@ -3,20 +3,20 @@ package merge
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
 
 type MvMap struct {
 	AddDelMap `json:"-"`
+	Renames   []MvPair
 	Projects  Projects
 }
 
 var reSrc = regexp.MustCompile("^(.*)/?src/(.*)$")
-var reProject = regexp.MustCompile("^([^/]*)/(.*)$")
 
 func NewMvMap() *MvMap {
 	return &MvMap{
@@ -25,29 +25,38 @@ func NewMvMap() *MvMap {
 	}
 }
 
-func (mv *MvMap) Match(status string) bool {
-	switch {
-	case reAdd.MatchString(status):
-		match := reAdd.FindStringSubmatch(status)
-		mv.do(match, Add)
-		return true
-	case reDel.MatchString(status):
-		match := reDel.FindStringSubmatch(status)
-		mv.do(match, Del)
-		return true
-	default:
-		return false
+func (mv *MvMap) Run() ([]*MvGroup, []MvPair) {
+	for _, status := range git.Command("status", "-s").OutputLines() {
+		switch {
+		case reAdd.MatchString(status):
+			match := reAdd.FindStringSubmatch(status)
+			mv.do(match[1], Add)
+		case reDel.MatchString(status):
+			match := reDel.FindStringSubmatch(status)
+			mv.do(match[1], Del)
+		case reRename.MatchString(status):
+			match := reRename.FindStringSubmatch(status)
+			pair := new(MvPair)
+			pair.From = GetFilePath(match[1])
+			pair.To = GetFilePath(match[2])
+			mv.Renames = append(mv.Renames, *pair)
+		}
 	}
+	for _, pair := range mv.Renames {
+		mv.add(pair.From, Del|Rename)
+		mv.add(pair.To, Add|Rename)
+	}
+	return mv.parse()
 }
 
-func (mv *MvMap) Parse() ([]*MvGroup, []MvPair) {
+func (mv *MvMap) parse() ([]*MvGroup, []MvPair) {
 	// TODO:
 	for _, p := range mv.Projects {
-		others := p.Others
+		if len(p.Others) == 0 {
+			continue
+		}
+		others := append([]ProjectFile{}, p.Others...)
 		for _, m := range p.Modules {
-			if len(others) == 0 {
-				break
-			}
 			var index = -1
 			for i, pf := range others {
 				if mf := m.parse(pf); mf != nil {
@@ -64,8 +73,10 @@ func (mv *MvMap) Parse() ([]*MvGroup, []MvPair) {
 		}
 		p.Others = others
 	}
-	log.Println(util.String(mv))
-	return mv.AddDelMap.Parse()
+
+	log.Println(util.String(mv.Projects))
+	errs, pairs := mv.AddDelMap.parse()
+	return errs, append(pairs, mv.Renames...)
 }
 
 func (mv *MvMap) getProject(dir FileDir) *Project {
@@ -84,25 +95,25 @@ type Projects map[FileDir]*Project
 type Modules map[FileDir]*Module
 
 func (ps Projects) MarshalJSON() ([]byte, error) {
-	var values []*Project
-	for _, p := range ps {
-		values = append(values, p)
+	projects := make(map[string]*Project)
+	for k, v := range ps {
+		projects[k.slashy] = v
 	}
-	return json.Marshal(values)
+	return json.Marshal(projects)
 }
 
 func (mods Modules) MarshalJSON() ([]byte, error) {
-	var values []*Module
-	for _, m := range mods {
-		values = append(values, m)
+	modules := make(map[string]*Module)
+	for k, v := range mods {
+		modules[k.slashy] = v
 	}
-	return json.Marshal(values)
+	return json.Marshal(modules)
 }
 
 type Project struct {
-	Name    FileDir
-	Modules Modules
-	Others  []ProjectFile
+	Name    FileDir       `json:"-"`
+	Modules Modules       `json:",omitempty"`
+	Others  []ProjectFile `json:",omitempty"`
 }
 
 func (p *Project) getModule(dir FileDir) *Module {
@@ -118,10 +129,11 @@ func (p *Project) getModule(dir FileDir) *Module {
 }
 
 type Module struct {
-	Project FileDir `json:"-"`
-	Name    FileDir
-	Src     []ModuleFile
-	Other   []ModuleFile
+	Project FileDir      `json:"-"`
+	Name    FileDir      `json:"-"`
+	Re      string       `json:",omitempty"`
+	Src     []ModuleFile `json:"-"`
+	Other   []ModuleFile `json:",omitempty"`
 
 	re *regexp.Regexp
 }
@@ -129,14 +141,22 @@ type Module struct {
 func (m *Module) parse(pf ProjectFile) *ModuleFile {
 	fp := pf.RelPath
 	if m.re == nil {
-		pat := fmt.Sprintf("^%s/(.*)$", m.Name.slashy)
+		name := m.Name.slashy
+		if name == "." {
+			name = ""
+		} else {
+			name += "/"
+		}
+		pat := fmt.Sprintf("^%s(.*)$", name)
 		m.re = regexp.MustCompile(pat)
+		m.Re = m.re.String()
 	}
 	if match := m.re.FindStringSubmatch(fp.slashy); match != nil {
 		f := new(ModuleFile)
 		f.ProjectFile = pf
 		f.Module = m.Name
-		f.RelPath = GetFilePath(filepath.FromSlash(match[1]))
+		f.RelPath = GetFilePath(match[1])
+		return f
 	}
 	return nil
 }
@@ -157,7 +177,7 @@ type MvFile struct {
 }
 
 func (f MvFile) String() string {
-	return fmt.Sprintf("%s: %s", f.Type, f.RelPath)
+	return fmt.Sprintf("%s: '%s'", f.Type, f.RelPath)
 }
 
 func (f MvFile) MarshalJSON() ([]byte, error) {
@@ -179,8 +199,8 @@ func newProjectFile(fp FilePath, path string) *ProjectFile {
 	}
 	pf := new(ProjectFile)
 	pf.FilePath = fp
-	pf.Project = GetFileDir(filepath.FromSlash(dir))
-	pf.RelPath = GetFilePath(filepath.FromSlash(relPath))
+	pf.Project = GetFileDir(dir)
+	pf.RelPath = GetFilePath(relPath)
 	return pf
 }
 
@@ -195,14 +215,13 @@ func parseSrc(fp FilePath) *ModuleFile {
 		src := new(ModuleFile)
 		src.ProjectFile = *newProjectFile(fp, match[1])
 		src.Module = src.RelPath.ToDir()
-		src.RelPath = GetFilePath(filepath.FromSlash(match[2]))
+		src.RelPath = GetFilePath(match[2])
 		return src
 	}
 	return nil
 }
 
-func (mv *MvMap) do(match []string, typ AddDelType) {
-	fp := mv.AddDelMap.do(match, typ)
+func (mv *MvMap) add(fp FilePath, typ AddDelType) {
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := mv.getProject(src.Project)
@@ -211,7 +230,7 @@ func (mv *MvMap) do(match []string, typ AddDelType) {
 		//} else if match := reProject.FindStringSubmatch(fp.slashy); match != nil {
 		//	f := newProjectFile(fp, match[1])
 		//	f.Type = typ
-		//	f.RelPath = GetFilePath(filepath.FromSlash(match[2]))
+		//	f.RelPath = GetFilePath((match[2]))
 		//	p := mv.getProject(f.Project)
 		//	p.Other = append(p.Other, *f)
 	} else {
@@ -220,4 +239,9 @@ func (mv *MvMap) do(match []string, typ AddDelType) {
 		p := mv.getProject(f.Project)
 		p.Others = append(p.Others, *f)
 	}
+}
+
+func (mv *MvMap) do(file string, typ AddDelType) {
+	fp := mv.AddDelMap.do(file, typ)
+	mv.add(fp, typ)
 }
