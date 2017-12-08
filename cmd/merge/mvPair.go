@@ -1,19 +1,17 @@
 package merge
 
 import (
-	"path"
-
 	"github.com/evovetech/got/git"
 )
 
 type MvPair struct {
-	From string
-	To   string
+	From FilePath
+	To   FilePath
 }
 
 func (mv *MvPair) run() error {
-	if err := mkdir(path.Dir(mv.To)); err != nil {
+	if err := mv.To.Dir().Mkdirs(); err != nil {
 		return err
 	}
-	return git.Command("mv", mv.From, mv.To).Run()
+	return git.Command("mv", mv.From.String(), mv.To.String()).Run()
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
-	"os"
 )
 
 type Step struct {
@@ -83,13 +82,6 @@ func (s *Step) Run() error {
 		return s.mergeCommit()
 	}
 	return s.commit()
-}
-
-func mkdir(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return os.MkdirAll(path, 0755)
-	}
-	return nil
 }
 
 func (s *Step) mergeCommit() error {

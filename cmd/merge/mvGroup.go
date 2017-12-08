@@ -36,8 +36,8 @@ func (mv *MvGroup) isSameSize() bool {
 
 func (mv *MvGroup) first() MvPair {
 	return MvPair{
-		From: mv.From[0].Path,
-		To:   mv.To[0].Path,
+		From: mv.From[0],
+		To:   mv.To[0],
 	}
 }
 
@@ -54,8 +54,9 @@ func (mv *MvGroup) parse(firstTry bool) (*MvGroup, []MvPair) {
 		for _, to := range mv.To {
 			var index = -1
 			var from FilePath
+			toDir := to.Dir()
 			for i, fr := range leftFrom {
-				if to.Dir.MovedFrom(fr.Dir) {
+				if toDir.MovedFrom(fr.Dir()) {
 					index = i
 					from = fr
 					break
@@ -65,8 +66,8 @@ func (mv *MvGroup) parse(firstTry bool) (*MvGroup, []MvPair) {
 				leftTo = append(leftTo, to)
 			} else {
 				mvPair := MvPair{
-					From: from.Path,
-					To:   to.Path,
+					From: from,
+					To:   to,
 				}
 				mvPairs = append(mvPairs, mvPair)
 				leftFrom = append(leftFrom[:index], leftFrom[index+1:]...)

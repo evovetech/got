@@ -1,19 +1,36 @@
 package merge
 
 import (
-	"path/filepath"
+	"github.com/evovetech/got/util"
 	"strings"
 )
 
-type FileDir string
+type FileDir FilePath
+
+func GetFileDir(dir string) FileDir {
+	fp := GetFilePath(dir)
+	return (FileDir)(fp)
+}
+
+func (d FileDir) ToFilePath() FilePath {
+	return (FilePath)(d)
+}
+
+func (d FileDir) Mkdirs() error {
+	return util.Mkdirs(d.actual)
+}
 
 func (d FileDir) Base() string {
-	return filepath.Base(string(d))
+	return d.ToFilePath().Name()
+}
+
+func (d FileDir) String() string {
+	return d.ToFilePath().String()
 }
 
 func (d FileDir) MovedFrom(other FileDir) bool {
-	dStr := string(d)
-	oStr := string(other)
+	dStr := d.slashy
+	oStr := d.slashy
 	// TODO:
 	return d.Base() == other.Base() ||
 		strings.Contains(dStr, other.Base()) ||

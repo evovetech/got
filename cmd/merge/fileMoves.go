@@ -27,7 +27,7 @@ func getFileMoves() (*FileMoves, bool) {
 			match := reRename.FindStringSubmatch(status)
 			from := match[1]
 			to := match[2]
-			mv := MvPair{From: from, To: to}
+			mv := MvPair{From: GetFilePath(from), To: GetFilePath(to)}
 			renames = append(renames, mv)
 			log.Printf("Rename: %s", util.String(mv))
 		}

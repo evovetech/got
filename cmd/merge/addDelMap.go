@@ -26,6 +26,7 @@ func (m AddDelMap) Match(status string) bool {
 func (m AddDelMap) Parse() (errs []*MvGroup, pairs []MvPair) {
 	for _, ad := range m {
 		if !ad.IsValid() {
+			//log.Printf("inValid: %s", ad)
 			continue
 		}
 		err, mvs := ad.parse(true)
@@ -40,11 +41,12 @@ func (m AddDelMap) Parse() (errs []*MvGroup, pairs []MvPair) {
 }
 
 func (m AddDelMap) do(match []string, typ AddDelType) {
-	fp := NewFilePath(match[1])
-	mv, ok := m[fp.Name]
+	fp := GetFilePath(match[1])
+	fName := fp.LoName()
+	mv, ok := m[fName]
 	if !ok {
-		mv = &MvGroup{FileName: fp.Name}
-		m[fp.Name] = mv
+		mv = &MvGroup{FileName: fName}
+		m[fName] = mv
 	}
 	switch typ {
 	case Add:
