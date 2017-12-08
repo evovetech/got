@@ -25,48 +25,17 @@ import (
 )
 
 type Step struct {
-	Branch      branchRef
-	Target      branchRef
-	Strategy    merge.Strategy
+	Branch      *branchRef
+	Target      *branchRef
 	FindRenames int
 }
 
-func NewStep(branch branchRef, target branchRef, strategy merge.Strategy) *Step {
+func NewStep(branch *branchRef, target *branchRef, findRenames int) *Step {
 	return &Step{
-		Branch:   branch,
-		Target:   target,
-		Strategy: strategy,
+		Branch:      branch,
+		Target:      target,
+		FindRenames: findRenames,
 	}
-}
-
-func (s *Step) MergeResetTheirs() error {
-	if err := util.RunAll(s.checkout, s.updateBranchRef); err != nil {
-		return err
-	}
-
-	targetTree := s.Target.Ref.ShortSha() + "^{tree}"
-	err := git.Command("read-tree", targetTree).Run()
-	if err != nil {
-		return err
-	}
-
-	var headTree string
-	if headTree, err = git.Command("write-tree").Output(); err != nil {
-		return err
-	}
-	commitCmd := git.Command("commit-tree", headTree,
-		"-p", s.Branch.Ref.ShortSha(),
-		"-p", s.Target.Ref.ShortSha(),
-		"-m", s.getMsg())
-	var commitSha string
-	if commitSha, err = commitCmd.Output(); err != nil {
-		return err
-	}
-	if err = git.Command("update-ref", s.Branch.Ref.Info.RefName, commitSha).Run(); err != nil {
-		return err
-	}
-	git.Command("add", ".").Run()
-	return git.Command("reset", "--hard", "HEAD").Run()
 }
 
 func (s *Step) Run() error {
@@ -97,14 +66,16 @@ func (s *Step) merge() error {
 	}
 
 	// git merge --no-commit -X "$cmd" "$merge_commit"
+	st := merge.OURS
 	m := s.Target.Ref.Merge()
+	m.Strategy = st
 	m.NoCommit()
-	m.Strategy = s.Strategy
+	m.IgnoreAllSpace()
 	if s.FindRenames != 0 {
 		m.FindRenames(s.FindRenames)
 	}
 	if err := m.Run(); err != nil {
-		if err := resolve.Run(s.Strategy); err != nil {
+		if err := resolve.Run(st); err != nil {
 			git.AbortMerge()
 			return fmt.Errorf("could not merge %s: %s", s.Target.Name, err.Error())
 		}
@@ -141,13 +112,14 @@ func (s *Step) deleteBranch() error {
 	return nil
 }
 
+func getMsg(resolveName string) string {
+	format := "resolving conflicts with %s changes"
+	return fmt.Sprintf(format, resolveName)
+}
+
 func (s *Step) getMsg() string {
-	head := s.Branch
-	target := s.Target
+	head := s.Branch.OursName
+	target := s.Target.OursName
 	format := "merge %s into %s -- CONFLICTS -- resolving with %s changes"
-	res := target
-	if s.Strategy == merge.OURS {
-		res = head
-	}
-	return fmt.Sprintf(format, target.Ref.ShortSha(), head.Ref.ShortSha(), res.OursName)
+	return fmt.Sprintf(format, target, head, head)
 }

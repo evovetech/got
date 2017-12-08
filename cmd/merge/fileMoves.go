@@ -29,7 +29,6 @@ func getFileMoves() (*FileMoves, bool) {
 			to := match[2]
 			mv := MvPair{From: GetFilePath(from), To: GetFilePath(to)}
 			renames = append(renames, mv)
-			log.Printf("Rename: %s", util.String(mv))
 		}
 	}
 	errs, mvs := adm.Parse()
@@ -37,7 +36,7 @@ func getFileMoves() (*FileMoves, bool) {
 
 	if len(renames) == 0 {
 		if len(errs) != 0 {
-			log.Printf("errors: %s", util.String(errs))
+			log.Verbose.Printf("errors: %s", util.String(errs))
 		}
 		return nil, true
 	}
@@ -54,7 +53,7 @@ func (m *FileMoves) Run() error {
 		mv.run()
 	}
 	if len(m.errs) > 0 {
-		log.Printf("errors: %s", util.String(m.errs))
+		log.Verbose.Printf("errors: %s", util.String(m.errs))
 	}
 	return git.Command("commit", "-m", "moving files to prepare for merge").Run()
 }

@@ -45,6 +45,10 @@ func (r Ref) ShortSha() string {
 	return r.Commit.Short
 }
 
+func (r Ref) TreeRef() string {
+	return r.ShortSha() + "^{tree}"
+}
+
 func (r Ref) String() string {
 	return util.String(r)
 }

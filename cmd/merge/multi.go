@@ -34,35 +34,19 @@ func getBranchRef(ours git.Ref, theirs git.Ref) (*branchRef, error) {
 	}
 }
 
-func (b *branchRef) String() string {
-	return util.String(b)
-}
-
 func (b *branchRef) Update() error {
 	return b.Ref.Update()
 }
 
-func (b *branchRef) SetOursName(oursName string) {
-	b.OursName = oursName
+func (b *branchRef) String() string {
+	return util.String(b)
 }
 
 type multiStep struct {
 	multi *multi
 
-	ours     branchRef
-	theirs   branchRef
-	strategy merge.Strategy
-}
-
-func (m *multiStep) Update(st merge.Strategy) error {
-	if err := m.ours.Update(); err != nil {
-		return err
-	}
-	if err := m.theirs.Update(); err != nil {
-		return err
-	}
-	m.strategy = st
-	return nil
+	ours   *branchRef
+	theirs *branchRef
 }
 
 func (m *multi) Run() (RunStep, error) {
@@ -84,80 +68,71 @@ func (m *multi) Run() (RunStep, error) {
 	}
 
 	// first merge
-	s1 := &multiStep{m, *ours, *theirs, merge.OURS}
-	if err := s1.RunE(25); err != nil {
+	s1 := &multiStep{m, ours, theirs}
+	if err = s1.RunE(25); err != nil {
 		return reset(err)
 	}
 
 	// second merge
+	var commit string
+	ours.Ref.Checkout()
+	if commit, err = s1.MergeCommitTree("", merge.THEIRS); err != nil {
+		return reset(err)
+	}
 	if m.Strategy == merge.OURS {
-		if err := s1.Update(merge.THEIRS); err != nil {
-			return reset(err)
-		}
-		if err := s1.MergeResetTheirs(); err != nil {
+		if commit, err = s1.MergeCommitTree(commit, merge.OURS); err != nil {
 			return reset(err)
 		}
 	}
 
-	// final merge
-	if err := s1.Update(merge.THEIRS); err != nil {
+	// update branch ref
+	if err = util.RunAll(
+		git.Command("update-ref", m.HeadRef.Info.RefName, commit).Run,
+		git.Command("reset", "--hard", "HEAD").Run,
+		git.RemoveUntracked,
+		m.HeadRef.Checkout,
+		ours.Ref.Delete,
+		theirs.Ref.Delete,
+	); err != nil {
 		return reset(err)
 	}
-	if err := s1.RunLast(); err != nil {
-		return reset(err)
-	}
-
-	// update refs
-	if err := m.HeadRef.Checkout(); err != nil {
-		return reset(err)
-	}
-	mrge := git.Merge()
-	mrge.MergeRef = s1.ours.Name
-	mrge.FFOnly()
-	if err = mrge.Run(); err != nil {
-		return reset(err)
-	}
-
-	ours.Ref.Delete()
-	theirs.Ref.Delete()
-
-	return nil, nil //, m.RunE()
-}
-
-func (m *multiStep) MergeResetTheirs() error {
-	st := merge.THEIRS
-	err := util.RunAll(
-		NewStep(m.ours, m.theirs, st).MergeResetTheirs,
-		NewStep(m.theirs, m.ours, st).MergeResetTheirs,
-	)
-	if err != nil {
-		return err
-	}
-	oursName := m.theirs.OursName
-	m.theirs.SetOursName(m.ours.OursName)
-	m.ours.SetOursName(oursName)
-	return nil
+	return nil, nil
 }
 
 func (m *multiStep) RunE(findRenames int) error {
-	st := m.strategy
-	step1 := NewStep(m.ours, m.theirs, st)
-	step1.FindRenames = findRenames
-	step2 := NewStep(m.theirs, m.ours, st)
-	step2.FindRenames = findRenames
-	steps := NewStepper(step1, step2)
-	if err := steps.Run(); err != nil {
-		return err
-	}
-	if st == merge.THEIRS {
-		oursName := m.theirs.OursName
-		m.theirs.SetOursName(m.ours.OursName)
-		m.ours.SetOursName(oursName)
-	}
-	return nil
+	return util.RunAll(
+		NewStep(m.ours, m.theirs, findRenames).Run,
+		NewStep(m.theirs, m.ours, findRenames).Run,
+		m.update,
+	)
 }
 
-func (m *multiStep) RunLast() error {
-	lastStep := NewStep(m.ours, m.theirs, merge.THEIRS)
-	return lastStep.MergeResetTheirs()
+func (m *multiStep) MergeCommitTree(head string, which merge.Strategy) (commit string, err error) {
+	pick := m.theirs
+	mergeHead := pick.Ref.ShortSha()
+	switch which {
+	case merge.OURS:
+		pick = m.ours
+	case merge.THEIRS:
+		head = m.ours.Ref.ShortSha()
+	}
+	tree := pick.Ref.TreeRef()
+	commitCmd := git.Command("commit-tree", tree,
+		"-p", head,
+		"-p", mergeHead,
+		"-m", getMsg(pick.OursName))
+	if commit, err = commitCmd.Output(); err == nil {
+		err = git.Command("update-ref", m.ours.Ref.Info.RefName, commit).Run()
+	}
+	return
+}
+
+func (m *multiStep) update() error {
+	if err := m.ours.Update(); err != nil {
+		return err
+	}
+	if err := m.theirs.Update(); err != nil {
+		return err
+	}
+	return nil
 }
