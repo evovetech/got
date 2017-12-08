@@ -6,23 +6,23 @@ import (
 	"strings"
 )
 
-type FileDir struct {
+type DirPath struct {
 	FilePath
 }
 
-func GetFileDir(dir string) FileDir {
-	return FileDir{GetFilePath(dir)}
+func GetDirPath(dir string) DirPath {
+	return DirPath{GetFilePath(dir)}
 }
 
-func (d FileDir) Mkdirs() error {
+func (d DirPath) Mkdirs() error {
 	return util.Mkdirs(d.actual)
 }
 
-func (d FileDir) Base() string {
+func (d DirPath) Base() string {
 	return d.Name()
 }
 
-func (d FileDir) MovedFrom(other FileDir) bool {
+func (d DirPath) MovedFrom(other DirPath) bool {
 	dStr := d.slashy
 	oStr := other.slashy
 	// TODO:
@@ -31,6 +31,6 @@ func (d FileDir) MovedFrom(other FileDir) bool {
 		strings.Contains(oStr, d.Base())
 }
 
-func (d FileDir) MarshalJSON() ([]byte, error) {
+func (d DirPath) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.actual)
 }

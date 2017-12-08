@@ -22,16 +22,16 @@ func GetFilePath(file string) FilePath {
 	}
 }
 
-func (fp FilePath) ToDir() FileDir {
-	return FileDir{fp}
+func (fp FilePath) ToDir() DirPath {
+	return DirPath{fp}
 }
 
 func (fp FilePath) Name() string {
 	return path.Base(fp.slashy)
 }
 
-func (fp FilePath) Dir() FileDir {
-	return GetFileDir(filepath.Dir(fp.actual))
+func (fp FilePath) Dir() DirPath {
+	return GetDirPath(filepath.Dir(fp.actual))
 }
 
 func (fp FilePath) LoName() string {

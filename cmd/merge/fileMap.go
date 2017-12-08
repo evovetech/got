@@ -27,9 +27,9 @@ func (m *FileMap) Add(file FilePath) error {
 	if m.Path.Name() != "." {
 		return fmt.Errorf("can only add to root, not %s", m)
 	}
-	var dir FileDir
+	var dir DirPath
 	if file.IsDir() {
-		dir = GetFileDir(file.actual)
+		dir = GetDirPath(file.actual)
 	} else {
 		dir = file.Dir()
 	}

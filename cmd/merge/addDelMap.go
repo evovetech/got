@@ -31,26 +31,22 @@ const (
 	Rename
 )
 
-func (m AddDelMap) parse() (errs []*MvGroup, pairs []MvPair) {
+func (m AddDelMap) parse() ([]*MvGroup, []MvPair) {
+	var errs []*MvGroup
+	var pairs []MvPair
 	for _, ad := range m {
 		if !ad.IsValid() {
-			//log.Printf("inValid: %s", ad)
 			continue
 		}
-		logMap := make(map[string]interface{})
-		logMap["FileName"] = ad.FileName
 		err, mvs := ad.parse(true)
-		if len(mvs) > 0 {
-			pairs = append(pairs, mvs...)
-			logMap["Moves"] = mvs
-		}
 		if err != nil {
 			errs = append(errs, err)
-			logMap["Unmoved"] = err
 		}
-		//log.Print(util.String(logMap))
+		if len(mvs) > 0 {
+			pairs = append(pairs, mvs...)
+		}
 	}
-	return
+	return errs, pairs
 }
 
 func (m AddDelMap) do(file string, typ AddDelType) FilePath {
