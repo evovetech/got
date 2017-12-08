@@ -128,11 +128,8 @@ func (m *multiStep) MergeCommitTree(head string, which merge.Strategy) (commit s
 }
 
 func (m *multiStep) update() error {
-	if err := m.ours.Update(); err != nil {
-		return err
-	}
-	if err := m.theirs.Update(); err != nil {
-		return err
-	}
-	return nil
+	return util.RunAll(
+		m.ours.Update,
+		m.theirs.Update,
+	)
 }

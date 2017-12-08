@@ -70,7 +70,6 @@ func (s *Step) merge() error {
 	m := s.Target.Ref.Merge()
 	m.Strategy = st
 	m.NoCommit()
-	m.IgnoreAllSpace()
 	if s.FindRenames != 0 {
 		m.FindRenames(s.FindRenames)
 	}
