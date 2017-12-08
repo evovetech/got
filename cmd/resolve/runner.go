@@ -52,7 +52,6 @@ func resolveFile(file string, st merge.Strategy) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("unresolved: %s", status)
 	switch {
 	case reDD.MatchString(status):
 		err = git.Add(file, "-u")
@@ -63,7 +62,11 @@ func resolveFile(file string, st merge.Strategy) error {
 	default:
 		err = fmt.Errorf("unknown strategy: ")
 	}
-	log.Printf("resolved: %s", git.StatusCmd(file).OutputString())
+	status2 := git.StatusCmd(file).OutputString()
+	if status2 == "" {
+		status2 = "  "
+	}
+	log.Printf("'%s' -> '%s' %s", status[:2], status2[:2], file)
 	return err
 }
 
