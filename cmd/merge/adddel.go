@@ -14,22 +14,18 @@ const (
 	Del
 )
 
-func (m AddDelMap) Do(match []string, typ AddDelType) {
-	file := match[1]
-	fName := path.Base(file)
-	fDir := path.Dir(file)
-	ad, ok := m[fName]
-	if !ok {
-		ad = &AddDel{Fname: fName}
-		m[fName] = ad
-	}
-	switch typ {
-	case Add:
-		ad.add(fDir)
-		//log.Printf("A %s at %s", fName, fDir)
-	case Del:
-		ad.del(fDir)
-		//log.Printf("D %s at %s", fName, fDir)
+func (m AddDelMap) Match(status string) bool {
+	switch {
+	case reAdd.MatchString(status):
+		match := reAdd.FindStringSubmatch(status)
+		m.do(match, Add)
+		return true
+	case reDel.MatchString(status):
+		match := reDel.FindStringSubmatch(status)
+		m.do(match, Del)
+		return true
+	default:
+		return false
 	}
 }
 
@@ -47,6 +43,23 @@ func (m AddDelMap) Parse() (errs []*AddDel, pairs []MvPair) {
 		}
 	}
 	return
+}
+
+func (m AddDelMap) do(match []string, typ AddDelType) {
+	file := match[1]
+	fName := path.Base(file)
+	fDir := path.Dir(file)
+	ad, ok := m[fName]
+	if !ok {
+		ad = &AddDel{Fname: fName}
+		m[fName] = ad
+	}
+	switch typ {
+	case Add:
+		ad.add(fDir)
+	case Del:
+		ad.del(fDir)
+	}
 }
 
 type AddDel struct {

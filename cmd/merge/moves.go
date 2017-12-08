@@ -21,12 +21,8 @@ func getFileMoves() (*FileMoves, bool) {
 	var adm = make(AddDelMap)
 	for _, status := range git.Command("status", "-s", "--untracked-files=all").OutputLines() {
 		switch {
-		case reAdd.MatchString(status):
-			match := reAdd.FindStringSubmatch(status)
-			adm.Do(match, Add)
-		case reDel.MatchString(status):
-			match := reDel.FindStringSubmatch(status)
-			adm.Do(match, Del)
+		case adm.Match(status):
+			break
 		case reRename.MatchString(status):
 			match := reRename.FindStringSubmatch(status)
 			from := match[1]
