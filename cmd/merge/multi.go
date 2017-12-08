@@ -11,15 +11,21 @@ import (
 type multi Merger
 
 type branchRef struct {
-	OrigName string
+	OursName string
 	Name     string
 	Ref      git.Ref
 }
 
 func getBranchRef(ours git.Ref, theirs git.Ref) (*branchRef, error) {
 	name := fmt.Sprintf("%s_merge_%s", ours.ShortName(), theirs.ShortSha())
-	if err := git.Command("branch", name, ours.ShortSha()).Run(); err != nil {
-		return nil, err
+	branchCmd := git.Command("branch", name, ours.ShortSha())
+	if err := branchCmd.Run(); err != nil {
+		if e := git.Command("branch", "-D", name).Run(); e != nil {
+			return nil, err
+		}
+		if err := branchCmd.Run(); err != nil {
+			return nil, err
+		}
 	}
 	if ref, err := git.ParseRef(name); err != nil {
 		return nil, err
@@ -34,6 +40,10 @@ func (b *branchRef) String() string {
 
 func (b *branchRef) Update() error {
 	return b.Ref.Update()
+}
+
+func (b *branchRef) SetOursName(oursName string) {
+	b.OursName = oursName
 }
 
 type multiStep struct {
@@ -74,22 +84,20 @@ func (m *multi) Run() (RunStep, error) {
 	}
 
 	// first merge
-	st := merge.THEIRS
-	if m.Strategy == merge.THEIRS {
-		st = merge.OURS
-	}
-	s1 := &multiStep{m, *ours, *theirs, st}
-	if err := s1.RunE(); err != nil {
+	s1 := &multiStep{m, *ours, *theirs, merge.OURS}
+	if err := s1.RunE(25); err != nil {
 		return reset(err)
 	}
 
-	//// second merge
-	//if err := s1.Update(merge.THEIRS); err != nil {
-	//	return reset(err)
-	//}
-	//if err := s1.RunE(); err != nil {
-	//	return reset(err)
-	//}
+	// second merge
+	if m.Strategy == merge.OURS {
+		if err := s1.Update(merge.THEIRS); err != nil {
+			return reset(err)
+		}
+		if err := s1.MergeResetTheirs(); err != nil {
+			return reset(err)
+		}
+	}
 
 	// final merge
 	if err := s1.Update(merge.THEIRS); err != nil {
@@ -116,15 +124,40 @@ func (m *multi) Run() (RunStep, error) {
 	return nil, nil //, m.RunE()
 }
 
-func (m *multiStep) RunE() error {
+func (m *multiStep) MergeResetTheirs() error {
+	st := merge.THEIRS
+	err := util.RunAll(
+		NewStep(m.ours, m.theirs, st).MergeResetTheirs,
+		NewStep(m.theirs, m.ours, st).MergeResetTheirs,
+	)
+	if err != nil {
+		return err
+	}
+	oursName := m.theirs.OursName
+	m.theirs.SetOursName(m.ours.OursName)
+	m.ours.SetOursName(oursName)
+	return nil
+}
+
+func (m *multiStep) RunE(findRenames int) error {
 	st := m.strategy
 	step1 := NewStep(m.ours, m.theirs, st)
+	step1.FindRenames = findRenames
 	step2 := NewStep(m.theirs, m.ours, st)
+	step2.FindRenames = findRenames
 	steps := NewStepper(step1, step2)
-	return steps.Run()
+	if err := steps.Run(); err != nil {
+		return err
+	}
+	if st == merge.THEIRS {
+		oursName := m.theirs.OursName
+		m.theirs.SetOursName(m.ours.OursName)
+		m.ours.SetOursName(oursName)
+	}
+	return nil
 }
 
 func (m *multiStep) RunLast() error {
 	lastStep := NewStep(m.ours, m.theirs, merge.THEIRS)
-	return lastStep.Run()
+	return lastStep.MergeResetTheirs()
 }

@@ -70,6 +70,6 @@ func (s *beginStep) Run() (merger RunStep, err error) {
 
 	merger = &Merger{headRef, mergeRef, args.Strategy}
 
-	log.Printf("merger: %s\n", merger)
+	log.Verbose.Printf("merger: %s\n", merger)
 	return
 }

@@ -25,7 +25,7 @@ import (
 	"github.com/evovetech/got/util"
 )
 
-var reUU = regexp.MustCompile("^(\\?\\?) (.*)")
+var reUU = regexp.MustCompile("^\\?\\?\\s+(.*)")
 
 func SymbolicRef(ref string) string {
 	cmd := Command("symbolic-ref", "--short", ref)
@@ -62,14 +62,14 @@ func Checkout(args ...string) error {
 func ResolveRmCmd(file string) Runner {
 	return Group(
 		exec.Command("rm", file),
-		AddCmd(file, "-u"),
+		AddCmd(file, "-A"),
 	)
 }
 
 func ResolveCheckoutCmd(file string, s merge.Strategy) Runner {
 	return Group(
 		CheckoutCmd(s.Option(), "--", file),
-		AddCmd(file, "-u"),
+		AddCmd(file, "-A"),
 	)
 }
 
@@ -87,7 +87,7 @@ func RemoveUntracked() error {
 		switch {
 		case reUU.MatchString(status):
 			match := reUU.FindStringSubmatch(status)
-			cmd := exec.Command("rm", match[2])
+			cmd := exec.Command("rm", match[1])
 			if err := Run(cmd); err != nil {
 				errors = append(errors, err)
 			}

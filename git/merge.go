@@ -19,6 +19,7 @@ package git
 import (
 	"os/exec"
 
+	"fmt"
 	"github.com/evovetech/got/git/merge"
 )
 
@@ -61,6 +62,11 @@ func (m *MergeCmd) FFOnly() {
 	m.cmd.AddOption("--ff-only")
 }
 
+func (m *MergeCmd) FindRenames(percent int) {
+	arg := fmt.Sprintf("find-renames=%d%s", percent, "%")
+	m.AddStrategyOption(arg)
+}
+
 func (m *MergeCmd) Build() *exec.Cmd {
 	m.cmd.AddOption("-s", "recursive")
 	if st := m.Strategy; st != merge.NONE {
@@ -70,8 +76,6 @@ func (m *MergeCmd) Build() *exec.Cmd {
 		m.cmd.AddOption("-X", o)
 	}
 	m.cmd.AddOption("-X", "diff-algorithm=histogram")
-	m.cmd.AddOption("-X", "find-renames=75%")
-	m.cmd.AddOption("-X", "ignore-all-space")
 	m.cmd.AddArg(m.MergeRef)
 	return m.cmd.Build()
 }

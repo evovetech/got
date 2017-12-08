@@ -31,8 +31,7 @@ var reDeletedOurs = regexp.MustCompile("^(D|UA)")
 var reDeletedTheirs = regexp.MustCompile("^(.D|AU)")
 
 func Run(st merge.Strategy) error {
-	git.Command("checkout-index", "-n", "-f", "-a").Run()
-	git.Command("update-index", "--ignore-missing", "--refresh").Run()
+	//git.Command("update-index", "--really-refresh", "--again", "--verbose").Run()
 	var errors []error
 	diff := git.Command("diff", "--name-only", "--diff-filter=UXB")
 	for _, file := range diff.OutputLines() {
@@ -40,7 +39,11 @@ func Run(st merge.Strategy) error {
 			errors = append(errors, err)
 		}
 	}
-	return util.CompositeError(errors)
+	err := util.CompositeError(errors)
+	if err == nil {
+		err = git.RemoveUntracked()
+	}
+	return err
 }
 
 func resolveFile(file string, st merge.Strategy) error {
