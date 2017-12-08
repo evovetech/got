@@ -2,6 +2,7 @@ package merge
 
 import (
 	"encoding/json"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,10 @@ func GetFilePath(file string) FilePath {
 	}
 }
 
+func (fp FilePath) ToDir() FileDir {
+	return FileDir{fp}
+}
+
 func (fp FilePath) Name() string {
 	return path.Base(fp.slashy)
 }
@@ -30,6 +35,17 @@ func (fp FilePath) Dir() FileDir {
 
 func (fp FilePath) LoName() string {
 	return strings.ToLower(fp.Name())
+}
+
+func (fp FilePath) Stat() (os.FileInfo, error) {
+	return os.Stat(fp.actual)
+}
+
+func (fp FilePath) IsDir() bool {
+	if info, err := fp.Stat(); err == nil {
+		return info.Mode().IsDir()
+	}
+	return false
 }
 
 func (fp FilePath) String() string {

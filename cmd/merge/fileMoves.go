@@ -18,10 +18,10 @@ type FileMoves struct {
 
 func getFileMoves() (*FileMoves, bool) {
 	var renames []MvPair
-	var adm = make(AddDelMap)
+	var mvMap = NewMvMap()
 	for _, status := range git.Command("status", "-s", "--untracked-files=all").OutputLines() {
 		switch {
-		case adm.Match(status):
+		case mvMap.Match(status):
 			break
 		case reRename.MatchString(status):
 			match := reRename.FindStringSubmatch(status)
@@ -31,7 +31,7 @@ func getFileMoves() (*FileMoves, bool) {
 			renames = append(renames, mv)
 		}
 	}
-	errs, mvs := adm.Parse()
+	errs, mvs := mvMap.Parse()
 	renames = append(renames, mvs...)
 
 	if len(renames) == 0 {

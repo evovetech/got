@@ -5,15 +5,12 @@ import (
 	"strings"
 )
 
-type FileDir FilePath
-
-func GetFileDir(dir string) FileDir {
-	fp := GetFilePath(dir)
-	return (FileDir)(fp)
+type FileDir struct {
+	FilePath
 }
 
-func (d FileDir) ToFilePath() FilePath {
-	return (FilePath)(d)
+func GetFileDir(dir string) FileDir {
+	return FileDir{GetFilePath(dir)}
 }
 
 func (d FileDir) Mkdirs() error {
@@ -21,11 +18,7 @@ func (d FileDir) Mkdirs() error {
 }
 
 func (d FileDir) Base() string {
-	return d.ToFilePath().Name()
-}
-
-func (d FileDir) String() string {
-	return d.ToFilePath().String()
+	return d.Name()
 }
 
 func (d FileDir) MovedFrom(other FileDir) bool {

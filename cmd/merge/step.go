@@ -44,20 +44,14 @@ func (s *Step) Run() error {
 	}
 
 	if m, ok := getFileMoves(); !ok {
-		if err := m.Run(); err != nil {
-			return err
-		}
-		// TODO: run again?
-		return s.mergeCommit()
+		return s.commit()
+	} else {
+		return util.RunAll(
+			m.Run,
+			s.merge,
+			s.commit,
+		)
 	}
-	return s.commit()
-}
-
-func (s *Step) mergeCommit() error {
-	if err := s.merge(); err != nil {
-		return err
-	}
-	return s.commit()
 }
 
 func (s *Step) merge() error {

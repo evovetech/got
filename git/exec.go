@@ -44,7 +44,7 @@ func RunExecCmd(cmd *exec.Cmd) (err error) {
 	var errOut bytes.Buffer
 	cmd.Stderr = util.CompositeWriter(&errOut, log.Verbose)
 	cmd.Stdout = util.CompositeWriter(cmd.Stdout, log.Verbose)
-	log.Printf("$ %s\n", strings.Join(cmd.Args, " "))
+	log.Verbose.Printf("$ %s\n", strings.Join(cmd.Args, " "))
 	if err = cmd.Run(); err != nil {
 		if options.Verbose {
 			return
