@@ -1,6 +1,6 @@
 package file
 
-//go:generate genny -in=$GOFILE -out=gen-$GOFILE gen "T_=String"
+//go:generate genny -in=$GOFILE -out=gen-$GOFILE gen "T_=String,Int"
 
 type T_NodeList map[T_]*T_Node
 

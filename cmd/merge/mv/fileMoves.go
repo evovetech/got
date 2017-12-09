@@ -4,16 +4,13 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
-	"regexp"
+	"github.com/evovetech/got/cmd/merge/mv/file"
 )
-
-var reAdd = regexp.MustCompile("^A\\s+(.*)")
-var reDel = regexp.MustCompile("^D\\s+(.*)")
-var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
 
 type FileMoves struct {
 	Renames []Rename
 	errs    []*Group
+	temp    file.StringNode
 }
 
 func GetFileMoves() (*FileMoves, bool) {

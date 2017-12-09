@@ -15,3 +15,15 @@ func (list StringNodeList) Add(node *StringNode) {
 		list[node.Value] = node
 	}
 }
+
+type IntNodeList map[Int]*IntNode
+
+func (list IntNodeList) Add(node *IntNode) {
+	if n, ok := list[node.Value]; ok {
+		for _, child := range node.Children {
+			n.Children.Add(child)
+		}
+	} else {
+		list[node.Value] = node
+	}
+}

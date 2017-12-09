@@ -4,7 +4,76 @@
 
 package file
 
+type StringPath = []String
+
 type StringNode struct {
 	Value    String
 	Children StringNodeList
+}
+
+var RootStringNode StringNode
+
+func init() {
+	RootStringNode.init()
+}
+
+func (n *StringNode) init() *StringNode {
+	if n.Children == nil {
+		n.Children = make(StringNodeList)
+	}
+	return n
+}
+
+func NewStringNode(val String) *StringNode {
+	n := &StringNode{Value: val}
+	return n.init()
+}
+
+func ParseStringNode(path StringPath) *StringNode {
+	var node *StringNode
+	if l := len(path); l > 0 {
+		node = NewStringNode(path[0])
+		if l > 1 {
+			child := ParseStringNode(path[1:])
+			node.Children.Add(child)
+		}
+	}
+	return node
+}
+
+type IntPath = []Int
+
+type IntNode struct {
+	Value    Int
+	Children IntNodeList
+}
+
+var RootIntNode IntNode
+
+func init() {
+	RootIntNode.init()
+}
+
+func (n *IntNode) init() *IntNode {
+	if n.Children == nil {
+		n.Children = make(IntNodeList)
+	}
+	return n
+}
+
+func NewIntNode(val Int) *IntNode {
+	n := &IntNode{Value: val}
+	return n.init()
+}
+
+func ParseIntNode(path IntPath) *IntNode {
+	var node *IntNode
+	if l := len(path); l > 0 {
+		node = NewIntNode(path[0])
+		if l > 1 {
+			child := ParseIntNode(path[1:])
+			node.Children.Add(child)
+		}
+	}
+	return node
 }

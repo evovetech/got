@@ -2,6 +2,7 @@ package mv
 
 import (
 	"fmt"
+	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
@@ -13,8 +14,12 @@ type Map struct {
 	AddDelMap `json:"-"`
 	Renames   []Rename
 	Projects  Projects
+	Root      file.StringNode
 }
 
+var reAdd = regexp.MustCompile("^A\\s+(.*)")
+var reDel = regexp.MustCompile("^D\\s+(.*)")
+var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
 var reSrc = regexp.MustCompile("^(.*)/?src/(.*)$")
 
 func NewMap() *Map {
