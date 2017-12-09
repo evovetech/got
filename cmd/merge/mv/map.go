@@ -12,9 +12,9 @@ import (
 
 type Map struct {
 	AddDelMap `json:"-"`
-	Renames   []Rename
-	Projects  Projects
-	Root      file.StringNode
+	Renames  []Rename
+	Projects Projects
+	Root     file.StringNode
 }
 
 var reAdd = regexp.MustCompile("^A\\s+(.*)")
@@ -26,6 +26,7 @@ func NewMap() *Map {
 	return &Map{
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
+		Root:      file.RootStringNode,
 	}
 }
 
@@ -78,6 +79,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 		p.Others = others
 	}
 
+	log.Printf("nodes: %s", util.String(m.Root))
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {
@@ -104,6 +106,9 @@ func (m *Map) getProject(dir DirPath) *Project {
 }
 
 func (m *Map) add(fp FilePath, typ Type) {
+	if node := file.ParseString(fp.slashy); node != nil {
+		m.Root.Add(node)
+	}
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := m.getProject(src.Project)

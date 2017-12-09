@@ -4,11 +4,30 @@
 
 package file
 
+import "encoding/json"
+
 type StringPath = []String
 
 type StringNode struct {
 	Value    String
 	Children StringNodeList
+}
+
+func NewStringNode(val String) *StringNode {
+	n := &StringNode{Value: val}
+	return n.init()
+}
+
+func ParseStringPath(path StringPath) *StringNode {
+	var node *StringNode
+	if l := len(path); l > 0 {
+		node = NewStringNode(path[0])
+		if l > 1 {
+			child := ParseStringPath(path[1:])
+			node.Children.Add(child)
+		}
+	}
+	return node
 }
 
 var RootStringNode StringNode
@@ -24,21 +43,12 @@ func (n *StringNode) init() *StringNode {
 	return n
 }
 
-func NewStringNode(val String) *StringNode {
-	n := &StringNode{Value: val}
-	return n.init()
+func (n *StringNode) Add(node *StringNode) {
+	n.Children.Add(node)
 }
 
-func ParseStringNode(path StringPath) *StringNode {
-	var node *StringNode
-	if l := len(path); l > 0 {
-		node = NewStringNode(path[0])
-		if l > 1 {
-			child := ParseStringNode(path[1:])
-			node.Children.Add(child)
-		}
-	}
-	return node
+func (n *StringNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.Children)
 }
 
 type IntPath = []Int
@@ -46,6 +56,23 @@ type IntPath = []Int
 type IntNode struct {
 	Value    Int
 	Children IntNodeList
+}
+
+func NewIntNode(val Int) *IntNode {
+	n := &IntNode{Value: val}
+	return n.init()
+}
+
+func ParseIntPath(path IntPath) *IntNode {
+	var node *IntNode
+	if l := len(path); l > 0 {
+		node = NewIntNode(path[0])
+		if l > 1 {
+			child := ParseIntPath(path[1:])
+			node.Children.Add(child)
+		}
+	}
+	return node
 }
 
 var RootIntNode IntNode
@@ -61,19 +88,10 @@ func (n *IntNode) init() *IntNode {
 	return n
 }
 
-func NewIntNode(val Int) *IntNode {
-	n := &IntNode{Value: val}
-	return n.init()
+func (n *IntNode) Add(node *IntNode) {
+	n.Children.Add(node)
 }
 
-func ParseIntNode(path IntPath) *IntNode {
-	var node *IntNode
-	if l := len(path); l > 0 {
-		node = NewIntNode(path[0])
-		if l > 1 {
-			child := ParseIntNode(path[1:])
-			node.Children.Add(child)
-		}
-	}
-	return node
+func (n *IntNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.Children)
 }
