@@ -12,15 +12,15 @@ var reDel = regexp.MustCompile("^D\\s+(.*)")
 var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
 
 type FileMoves struct {
-	Renames []MvPair
-	errs    []*MvGroup
+	Renames []Rename
+	errs    []*Group
 }
 
 func GetFileMoves() (*FileMoves, bool) {
-	errs, renames := NewMvMap().Run()
+	errs, renames := NewMap().Run()
 	if len(renames) == 0 {
 		if len(errs) != 0 {
-			log.Printf("errors: %s", util.String(errs))
+			log.Verbose.Printf("errors: %s", util.String(errs))
 		}
 		return nil, true
 	}

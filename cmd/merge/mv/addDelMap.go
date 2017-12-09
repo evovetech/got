@@ -2,38 +2,11 @@ package mv
 
 import "strings"
 
-type AddDelMap map[string]*MvGroup
-type AddDelType uint32
+type AddDelMap map[string]*Group
 
-func (t AddDelType) String() string {
-	var str string
-	if t.HasFlag(Rename) {
-		str += "R"
-	}
-	switch {
-	case t.HasFlag(Add):
-		str += "A"
-	case t.HasFlag(Del):
-		str += "D"
-	default:
-		str += "?"
-	}
-	return str
-}
-
-func (t AddDelType) HasFlag(flag AddDelType) bool {
-	return t&flag != 0
-}
-
-const (
-	Add AddDelType = 1 << iota
-	Del
-	Rename
-)
-
-func (m AddDelMap) parse() ([]*MvGroup, []MvPair) {
-	var errs []*MvGroup
-	var pairs []MvPair
+func (m AddDelMap) parse() ([]*Group, []Rename) {
+	var errs []*Group
+	var pairs []Rename
 	for _, ad := range m {
 		if !ad.IsValid() {
 			continue
@@ -49,13 +22,13 @@ func (m AddDelMap) parse() ([]*MvGroup, []MvPair) {
 	return errs, pairs
 }
 
-func (m AddDelMap) do(file string, typ AddDelType) FilePath {
+func (m AddDelMap) do(file string, typ Type) FilePath {
 	file = strings.Trim(file, "\"")
 	fp := GetFilePath(file)
 	fName := fp.LoName()
 	mv, ok := m[fName]
 	if !ok {
-		mv = &MvGroup{FileName: fName}
+		mv = &Group{FileName: fName}
 		m[fName] = mv
 	}
 	switch {

@@ -5,17 +5,17 @@ import (
 	"fmt"
 )
 
-type MvFile struct {
+type File struct {
 	FilePath
 
-	Type    AddDelType
+	Type    Type
 	RelPath FilePath
 }
 
-func (f MvFile) String() string {
+func (f File) String() string {
 	return fmt.Sprintf("%s: '%s'", f.Type, f.RelPath)
 }
 
-func (f MvFile) MarshalJSON() ([]byte, error) {
+func (f File) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.String())
 }

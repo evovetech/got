@@ -6,7 +6,7 @@ import (
 )
 
 type ProjectFile struct {
-	MvFile
+	File
 
 	Project DirPath
 }

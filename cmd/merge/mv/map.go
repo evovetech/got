@@ -9,48 +9,48 @@ import (
 	"regexp"
 )
 
-type MvMap struct {
+type Map struct {
 	AddDelMap `json:"-"`
-	Renames   []MvPair
+	Renames   []Rename
 	Projects  Projects
 }
 
 var reSrc = regexp.MustCompile("^(.*)/?src/(.*)$")
 
-func NewMvMap() *MvMap {
-	return &MvMap{
+func NewMap() *Map {
+	return &Map{
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
 	}
 }
 
-func (mv *MvMap) Run() ([]*MvGroup, []MvPair) {
+func (m *Map) Run() ([]*Group, []Rename) {
 	for _, status := range git.Command("status", "-s").OutputLines() {
 		switch {
 		case reAdd.MatchString(status):
 			match := reAdd.FindStringSubmatch(status)
-			mv.do(match[1], Add)
+			m.do(match[1], Add)
 		case reDel.MatchString(status):
 			match := reDel.FindStringSubmatch(status)
-			mv.do(match[1], Del)
+			m.do(match[1], Del)
 		case reRename.MatchString(status):
 			match := reRename.FindStringSubmatch(status)
-			pair := new(MvPair)
+			pair := new(Rename)
 			pair.From = GetFilePath(match[1])
 			pair.To = GetFilePath(match[2])
-			mv.Renames = append(mv.Renames, *pair)
+			m.Renames = append(m.Renames, *pair)
 		}
 	}
-	for _, pair := range mv.Renames {
-		mv.add(pair.From, Del|Rename)
-		mv.add(pair.To, Add|Rename)
+	for _, pair := range m.Renames {
+		m.add(pair.From, Del|Rn)
+		m.add(pair.To, Add|Rn)
 	}
-	return mv.parse()
+	return m.parse()
 }
 
-func (mv *MvMap) parse() ([]*MvGroup, []MvPair) {
+func (m *Map) parse() ([]*Group, []Rename) {
 	// TODO:
-	for _, p := range mv.Projects {
+	for _, p := range m.Projects {
 		if len(p.Others) == 0 {
 			continue
 		}
@@ -73,53 +73,53 @@ func (mv *MvMap) parse() ([]*MvGroup, []MvPair) {
 		p.Others = others
 	}
 
-	pairs := mv.Renames
-	errs, p := mv.AddDelMap.parse()
+	pairs := m.Renames
+	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {
 		pairs = append(pairs, p...)
 	}
 	fname := fmt.Sprintf("../mergey/out-%d.json", len(pairs))
 	if f, err := os.OpenFile(fname, os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-		f.WriteString(util.String(mv))
+		f.WriteString(util.String(m))
 		f.Close()
 	}
 	return errs, pairs
 }
 
-func (mv *MvMap) getProject(dir DirPath) *Project {
-	p, ok := mv.Projects[dir]
+func (m *Map) getProject(dir DirPath) *Project {
+	p, ok := m.Projects[dir]
 	if !ok {
 		p = &Project{
 			Name:    dir,
 			Modules: make(Modules),
 		}
-		mv.Projects[dir] = p
+		m.Projects[dir] = p
 	}
 	return p
 }
 
-func (mv *MvMap) add(fp FilePath, typ AddDelType) {
+func (m *Map) add(fp FilePath, typ Type) {
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
-		p := mv.getProject(src.Project)
+		p := m.getProject(src.Project)
 		m := p.getModule(src.Module)
 		m.addSrc(*src)
 		//} else if match := reProject.FindStringSubmatch(fp.slashy); match != nil {
 		//	f := newProjectFile(fp, match[1])
 		//	f.Type = typ
 		//	f.RelPath = GetFilePath((match[2]))
-		//	p := mv.getProject(f.Project)
+		//	p := m.getProject(f.Project)
 		//	p.Other = append(p.Other, *f)
 	} else {
 		f := newProjectFile(fp, fp.slashy)
 		f.Type = typ
 		log.Printf("newProjectFile -> %s", util.String(f))
-		p := mv.getProject(f.Project)
+		p := m.getProject(f.Project)
 		p.Others = append(p.Others, *f)
 	}
 }
 
-func (mv *MvMap) do(file string, typ AddDelType) {
-	fp := mv.AddDelMap.do(file, typ)
-	mv.add(fp, typ)
+func (m *Map) do(file string, typ Type) {
+	fp := m.AddDelMap.do(file, typ)
+	m.add(fp, typ)
 }
