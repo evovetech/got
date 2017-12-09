@@ -1,4 +1,4 @@
-package merge
+package mv
 
 import (
 	"github.com/evovetech/got/util"

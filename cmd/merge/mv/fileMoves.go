@@ -1,4 +1,4 @@
-package merge
+package mv
 
 import (
 	"github.com/evovetech/got/git"
@@ -16,11 +16,11 @@ type FileMoves struct {
 	errs    []*MvGroup
 }
 
-func getFileMoves() (*FileMoves, bool) {
+func GetFileMoves() (*FileMoves, bool) {
 	errs, renames := NewMvMap().Run()
 	if len(renames) == 0 {
 		if len(errs) != 0 {
-			log.Verbose.Printf("errors: %s", util.String(errs))
+			log.Printf("errors: %s", util.String(errs))
 		}
 		return nil, true
 	}

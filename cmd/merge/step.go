@@ -18,6 +18,7 @@ package merge
 
 import (
 	"fmt"
+	"github.com/evovetech/got/cmd/merge/mv"
 	"github.com/evovetech/got/cmd/resolve"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
@@ -43,7 +44,7 @@ func (s *Step) Run() error {
 		return err
 	}
 
-	if m, ok := getFileMoves(); !ok {
+	if m, ok := mv.GetFileMoves(); !ok {
 		return s.commit()
 	} else {
 		return util.RunAll(
