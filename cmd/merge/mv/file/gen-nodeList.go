@@ -24,24 +24,3 @@ func (list StringNodeList) add(node *StringNode) {
 		list[node.Value] = node
 	}
 }
-
-type PathNodeList map[Path]*PathNode
-
-func (list *PathNodeList) init() PathNodeList {
-	l := *list
-	if l == nil {
-		l = make(PathNodeList)
-		*list = l
-	}
-	return l
-}
-
-func (list PathNodeList) add(node *PathNode) {
-	if n, ok := list[node.Value]; ok {
-		for _, child := range node.children {
-			n.Add(child)
-		}
-	} else {
-		list[node.Value] = node
-	}
-}
