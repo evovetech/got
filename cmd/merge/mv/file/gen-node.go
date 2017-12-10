@@ -9,13 +9,13 @@ import "encoding/json"
 type StringPath = []String
 
 type StringNode struct {
-	Value    String
-	Children StringNodeList
+	Value String
+
+	children StringNodeList
 }
 
 func NewStringNode(val String) *StringNode {
-	n := &StringNode{Value: val}
-	return n.init()
+	return &StringNode{Value: val}
 }
 
 func ParseStringPath(path StringPath) *StringNode {
@@ -24,7 +24,7 @@ func ParseStringPath(path StringPath) *StringNode {
 		node = NewStringNode(path[0])
 		if l > 1 {
 			child := ParseStringPath(path[1:])
-			node.Children.Add(child)
+			node.Add(child)
 		}
 	}
 	return node
@@ -32,66 +32,52 @@ func ParseStringPath(path StringPath) *StringNode {
 
 var RootStringNode StringNode
 
-func init() {
-	RootStringNode.init()
-}
-
-func (n *StringNode) init() *StringNode {
-	if n.Children == nil {
-		n.Children = make(StringNodeList)
-	}
-	return n
+func (n *StringNode) getChildren() StringNodeList {
+	return n.children.init()
 }
 
 func (n *StringNode) Add(node *StringNode) {
-	n.Children.Add(node)
+	n.getChildren().add(node)
 }
 
-func (n *StringNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(n.Children)
+func (n StringNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.children)
 }
 
-type IntPath = []Int
+type PathPath = []Path
 
-type IntNode struct {
-	Value    Int
-	Children IntNodeList
+type PathNode struct {
+	Value Path
+
+	children PathNodeList
 }
 
-func NewIntNode(val Int) *IntNode {
-	n := &IntNode{Value: val}
-	return n.init()
+func NewPathNode(val Path) *PathNode {
+	return &PathNode{Value: val}
 }
 
-func ParseIntPath(path IntPath) *IntNode {
-	var node *IntNode
+func ParsePathPath(path PathPath) *PathNode {
+	var node *PathNode
 	if l := len(path); l > 0 {
-		node = NewIntNode(path[0])
+		node = NewPathNode(path[0])
 		if l > 1 {
-			child := ParseIntPath(path[1:])
-			node.Children.Add(child)
+			child := ParsePathPath(path[1:])
+			node.Add(child)
 		}
 	}
 	return node
 }
 
-var RootIntNode IntNode
+var RootPathNode PathNode
 
-func init() {
-	RootIntNode.init()
+func (n *PathNode) getChildren() PathNodeList {
+	return n.children.init()
 }
 
-func (n *IntNode) init() *IntNode {
-	if n.Children == nil {
-		n.Children = make(IntNodeList)
-	}
-	return n
+func (n *PathNode) Add(node *PathNode) {
+	n.getChildren().add(node)
 }
 
-func (n *IntNode) Add(node *IntNode) {
-	n.Children.Add(node)
-}
-
-func (n *IntNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(n.Children)
+func (n PathNode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.children)
 }

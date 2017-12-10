@@ -12,9 +12,9 @@ import (
 
 type Map struct {
 	AddDelMap `json:"-"`
-	Renames  []Rename
-	Projects Projects
-	Root     file.StringNode
+	Renames   []Rename
+	Projects  Projects
+	Root      file.StringNode
 }
 
 var reAdd = regexp.MustCompile("^A\\s+(.*)")

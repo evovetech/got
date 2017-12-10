@@ -15,6 +15,6 @@ func (m *mergeRef) Update() error {
 	return m.Temp.Update()
 }
 
-func (m *mergeRef) String() string {
+func (m mergeRef) String() string {
 	return util.String(m)
 }

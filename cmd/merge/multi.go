@@ -38,7 +38,7 @@ func (b *branchRef) Update() error {
 	return b.Ref.Update()
 }
 
-func (b *branchRef) String() string {
+func (b branchRef) String() string {
 	return util.String(b)
 }
 

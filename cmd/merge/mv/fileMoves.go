@@ -1,10 +1,10 @@
 package mv
 
 import (
+	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
-	"github.com/evovetech/got/cmd/merge/mv/file"
 )
 
 type FileMoves struct {

@@ -6,9 +6,18 @@ package file
 
 type StringNodeList map[String]*StringNode
 
-func (list StringNodeList) Add(node *StringNode) {
+func (list *StringNodeList) init() StringNodeList {
+	l := *list
+	if l == nil {
+		l = make(StringNodeList)
+		*list = l
+	}
+	return l
+}
+
+func (list StringNodeList) add(node *StringNode) {
 	if n, ok := list[node.Value]; ok {
-		for _, child := range node.Children {
+		for _, child := range node.children {
 			n.Add(child)
 		}
 	} else {
@@ -16,11 +25,20 @@ func (list StringNodeList) Add(node *StringNode) {
 	}
 }
 
-type IntNodeList map[Int]*IntNode
+type PathNodeList map[Path]*PathNode
 
-func (list IntNodeList) Add(node *IntNode) {
+func (list *PathNodeList) init() PathNodeList {
+	l := *list
+	if l == nil {
+		l = make(PathNodeList)
+		*list = l
+	}
+	return l
+}
+
+func (list PathNodeList) add(node *PathNode) {
 	if n, ok := list[node.Value]; ok {
-		for _, child := range node.Children {
+		for _, child := range node.children {
 			n.Add(child)
 		}
 	} else {

@@ -28,7 +28,7 @@ type Merger struct {
 	Strategy merge.Strategy
 }
 
-func (m *Merger) String() string {
+func (m Merger) String() string {
 	return util.String(m)
 }
 
