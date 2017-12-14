@@ -41,10 +41,15 @@ func RunCmd(cmd *Cmd) (err error) {
 }
 
 func RunExecCmd(cmd *exec.Cmd) (err error) {
+	if options.Verbose {
+		log.Printf("$ %s\n", strings.Join(cmd.Args, " "))
+		log.IndentIn()
+		defer log.IndentOut()
+	}
+
 	var errOut bytes.Buffer
 	cmd.Stderr = util.CompositeWriter(&errOut, log.Verbose)
 	cmd.Stdout = util.CompositeWriter(cmd.Stdout, log.Verbose)
-	log.Verbose.Printf("$ %s\n", strings.Join(cmd.Args, " "))
 	if err = cmd.Run(); err != nil {
 		if options.Verbose {
 			return

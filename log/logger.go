@@ -6,12 +6,15 @@ import (
 )
 
 type Logger struct {
+	*LogWriter
 	*log.Logger
 }
 
-func New(w io.Writer, prefix string, flags int) *Logger {
+func New(w io.Writer, prefix string, flags int, indent *Indent) *Logger {
+	lw := NewLogWriter(w, indent)
 	return &Logger{
-		Logger: log.New(w, prefix, flags),
+		LogWriter: lw,
+		Logger:    log.New(lw, prefix, flags),
 	}
 }
 

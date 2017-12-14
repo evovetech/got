@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	Verbose = New(new(verbose), "", 0)
-	Std     = New(os.Stdout, "", 0)
-	Err     = New(os.Stderr, "", log.Llongfile)
+	indent  = NewIndent(2)
+	Verbose = New(new(verbose), "", 0, indent)
+	Std     = New(os.Stdout, "", 0, indent)
+	Err     = New(os.Stderr, "", log.Llongfile, indent)
 )
 
 func Print(v interface{}) {
@@ -21,4 +22,12 @@ func Println(v interface{}) {
 
 func Printf(format string, v ...interface{}) {
 	Std.Printf(format, v...)
+}
+
+func IndentIn() int {
+	return indent.In()
+}
+
+func IndentOut() int {
+	return indent.Out()
 }
