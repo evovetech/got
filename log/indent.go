@@ -5,46 +5,45 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"sync"
+	"sync/atomic"
 )
 
 type Indent struct {
-	level int
+	level int32
+	size  int32
 	buf   []byte
-	size  []byte
-	rw    sync.RWMutex
 }
 
-func NewIndent(size int) *Indent {
-	i := new(Indent)
-	if size < 0 {
-		size = 0
+func NewIndent(size int32) *Indent {
+	indent := new(Indent)
+	indent.size = size
+	buf := make([]byte, size)
+	for i := int32(0); i < size; i++ {
+		buf[i] = ' '
 	}
-	i.size = make([]byte, size)
-	for index := range i.size {
-		i.size[index] = ' '
+	indent.buf = buf
+	return indent
+}
+
+func (i *Indent) Level() int32 {
+	return atomic.LoadInt32(&i.level)
+}
+
+func (i *Indent) Size() int32 {
+	return i.size
+}
+
+func (i *Indent) In() {
+	atomic.AddInt32(&i.level, 1)
+}
+
+func (i *Indent) Out() {
+	for cur := atomic.LoadInt32(&i.level); cur > 0; {
+		next := cur - 1
+		if atomic.CompareAndSwapInt32(&i.level, cur, next) {
+			return
+		}
 	}
-	return i
-}
-
-func (i *Indent) Prefix() string {
-	i.rw.RLock()
-	defer i.rw.RUnlock()
-	return string(i.buf)
-}
-
-func (i *Indent) In() int {
-	i.rw.Lock()
-	defer i.rw.Unlock()
-	i.level++
-	return i.updateBuf()
-}
-
-func (i *Indent) Out() int {
-	i.rw.Lock()
-	defer i.rw.Unlock()
-	i.level--
-	return i.updateBuf()
 }
 
 func (i *Indent) Transform(data []byte) ([]byte, error) {
@@ -55,32 +54,21 @@ func (i *Indent) Transform(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (i *Indent) WriteTo(w io.Writer, data []byte) (num int, err error) {
-	i.rw.RLock()
-	defer i.rw.RUnlock()
+func (i *Indent) WriteTo(w io.Writer, data []byte) (int, error) {
 	s := bufio.NewScanner(bytes.NewReader(data))
 	for s.Scan() {
-		if _, err = w.Write(i.buf); err != nil {
-			return
+		level := i.Level()
+		for index := int32(0); index < level; index++ {
+			if n, err := w.Write(i.buf); err != nil {
+				return n, err
+			}
 		}
-		var n int
-		if n, err = w.Write(s.Bytes()); err != nil {
-			return
+		if n, err := w.Write(s.Bytes()); err != nil {
+			return n, err
 		}
-		num += n
-		if n, err = fmt.Fprintln(w); err != nil {
-			return
+		if n, err := fmt.Fprintln(w, ""); err != nil {
+			return n, err
 		}
-		num += n
 	}
-	return
-}
-
-func (i *Indent) updateBuf() int {
-	size := i.level * len(i.size)
-	for cap(i.buf) < size {
-		i.buf = append(i.buf, i.size...)
-	}
-	i.buf = i.buf[:size]
-	return size
+	return len(data), nil
 }

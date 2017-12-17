@@ -1,21 +1,37 @@
 package log
 
 import (
+	"bytes"
 	"io"
 	"log"
 )
 
 type Logger struct {
-	*LogWriter
+	*Writer
 	*log.Logger
 }
 
-func New(w io.Writer, prefix string, flags int, indent *Indent) *Logger {
-	lw := NewLogWriter(w, indent)
+func NewLogger(w *Writer, prefix string, flags int) *Logger {
 	return &Logger{
-		LogWriter: lw,
-		Logger:    log.New(lw, prefix, flags),
+		Writer: w,
+		Logger: log.New(w, prefix, flags),
 	}
+}
+
+func NewBufLogger(buffer *bytes.Buffer) *Logger {
+	return NewLogger(NewWriter(buffer, NewIndent(2)), "", 0)
+}
+
+func New(w io.Writer, prefix string, flags int, indent *Indent) *Logger {
+	return NewLogger(NewWriter(w, indent), prefix, flags)
+}
+
+func (l *Logger) Enter(prefix interface{}, f func(*Logger)) {
+	l.Printf("%s {\n", prefix)
+	l.In()
+	f(l)
+	l.Out()
+	l.Println("}")
 }
 
 func (l *Logger) Write(p []byte) (int, error) {

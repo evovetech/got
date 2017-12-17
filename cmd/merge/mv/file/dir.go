@@ -1,8 +1,10 @@
 package file
 
 import (
-	"encoding/json"
+	"bytes"
 	"container/list"
+	"encoding/json"
+	"fmt"
 	"github.com/emirpasic/gods/trees/avltree"
 	"github.com/emirpasic/gods/utils"
 	"github.com/evovetech/got/log"
@@ -26,6 +28,49 @@ type DirTree struct {
 	*avltree.Tree
 }
 
+func (v *DirValue) log(l *log.Logger) {
+	v.Tree().log(l, v.Name())
+}
+
+func (t *DirTree) log(logger *log.Logger, path Path) {
+	logger.Enter(path, func(l *log.Logger) {
+		l.Println(t.Tree.String())
+		for _, file := range t.Files() {
+			l.Println(file.String())
+		}
+		for _, dir := range t.Dirs() {
+			dir.log(l)
+		}
+	})
+}
+
+func (t *DirTree) String() string {
+	var buf bytes.Buffer
+	l := log.NewBufLogger(&buf)
+	t.log(l, GetPath(""))
+	return buf.String()
+}
+
+func (t *DirTree) Files() (files []File) {
+	for it := t.Tree.Iterator(); it.Next(); {
+		switch v := it.Value().(type) {
+		case *Value:
+			files = append(files, v.File())
+		}
+	}
+	return
+}
+
+func (t *DirTree) Dirs() (dirs []*DirValue) {
+	for it := t.Tree.Iterator(); it.Next(); {
+		switch v := it.Value().(type) {
+		case *DirValue:
+			dirs = append(dirs, v)
+		}
+	}
+	return
+}
+
 func PathComparator(a, b interface{}) int {
 	return utils.StringComparator(a.(Path).String(), b.(Path).String())
 }
@@ -46,7 +91,7 @@ type dirTreeValue struct {
 }
 
 func (v *dirTreeValue) Name() Path {
-	return v.name
+	return v.name.Init()
 }
 
 func (v *dirTreeValue) Value() interface{} {
@@ -56,10 +101,6 @@ func (v *dirTreeValue) Value() interface{} {
 func (v *dirTreeValue) IsDir() bool {
 	_, ok := v.value.(*DirTree)
 	return ok
-}
-
-func (v dirTreeValue) String() string {
-	return v.name.String()
 }
 
 type Value struct {
@@ -85,15 +126,39 @@ type DirValue struct {
 	dirTreeValue
 }
 
-func (v *DirValue) Dir() *DirTree {
-	return v.value.(*DirTree)
-}
-
 func NewDirValue(path Path) *DirValue {
 	v := new(DirValue)
 	v.name = path
 	v.value = NewDirTree()
 	return v
+}
+
+func (v *DirValue) Tree() *DirTree {
+	return v.value.(*DirTree)
+}
+
+func (v DirValue) String() string {
+	return fmt.Sprintf("dir: %s", v.name)
+}
+
+type DirTreeNode avltree.Node
+
+func dirTreeNode(node *avltree.Node) *DirTreeNode {
+	return (*DirTreeNode)(node)
+}
+
+func (n *DirTreeNode) GetValue() DirTreeValue {
+	return n.Value.(DirTreeValue)
+}
+
+func (n *DirTreeNode) DirValue() (*DirValue, bool) {
+	dir, ok := n.Value.(*DirValue)
+	return dir, ok
+}
+
+func (n *DirTreeNode) FileValue() (*Value, bool) {
+	f, ok := n.Value.(*Value)
+	return f, ok
 }
 
 func (t *DirTree) Get(path Path) (DirTreeValue, bool) {
@@ -105,39 +170,106 @@ func (t *DirTree) Get(path Path) (DirTreeValue, bool) {
 	return nil, false
 }
 
-func (t *DirTree) PutFilePath(fp string, typ Type) (*DirValue, *Value) {
-	path, file := GetFile(fp, typ)
-	if dir := t.PutDir(path); dir != nil {
-		return dir, dir.Dir().PutFile(file)
-	}
-	return nil, nil
+func (t *DirTree) Add(v DirTreeValue) {
+	//log.Printf("adding %s", v)
+	t.Put(v.Name(), v)
 }
 
-func (t *DirTree) PutFile(file File) *Value {
+func (t *DirTree) PutFilePath(fp string, typ Type) (Path, *DirTree, *Value) {
+	var base *DirTree
+	path, file := GetFile(fp, typ)
+	if path.IsRoot() {
+		base = t
+	} else if tree := t.PutDir(path); tree != nil {
+		base = tree
+	}
+	if base != nil {
+		return path, base, base.AddFile(file)
+	}
+	return path, nil, nil
+}
+
+func (t *DirTree) AddFile(file File) *Value {
 	v := NewValue(file)
-	t.Put(v.name, v)
-	log.Printf("adding file %s", file.String())
+	t.Add(v)
 	return v
 }
 
-func (t *DirTree) PutDir(path Path) *DirValue {
+func (t *DirTree) PutDir(path Path) *DirTree {
 	if path.IsRoot() {
-		return t.Root.Value.(*DirValue)
+		return t
 	} else if cur, ok := t.Get(path); ok {
 		dir := cur.(*DirValue)
-		log.Printf("cur[%s] = %s", path, dir.String())
-		return dir
+		//log.Printf("cur[%s] = %s", path, dir.String())
+		return dir.Tree()
+	} else if tree, ok := t.putCeil(path); ok {
+		//log.Printf("ceil[%s] = %s", path, tree.String())
+		return tree
+	} else if tree, ok := t.putFloor(path); ok {
+		//log.Printf("floor[%s] = %s", path, tree.String())
+		return tree
 	}
-	if floor, ok := t.Floor(path); ok {
-		log.Printf("floor[%s] = %s", path, floor.Key.(Path).String())
-	}
-	if ceil, ok := t.Ceiling(path); ok {
-		log.Printf("ceil[%s] = %s", path, ceil.Key.(Path).String())
-	}
-	log.Printf("adding dir %s", path.String())
+	return t.addDir(path)
+}
+
+func (t *DirTree) addDir(path Path) *DirTree {
 	v := NewDirValue(path)
-	t.Put(path, v)
-	return v
+	t.Add(v)
+	return v.Tree()
+}
+
+func (t *DirTree) putFloor(path Path) (*DirTree, bool) {
+	if floor, ok := t.Floor(path); ok {
+		return t.putNode(path, dirTreeNode(floor))
+	}
+	return nil, false
+}
+
+func (t *DirTree) putCeil(path Path) (*DirTree, bool) {
+	if ceil, ok := t.Ceiling(path); ok {
+		return t.putNode(path, dirTreeNode(ceil))
+	}
+	return nil, false
+}
+
+func (t *DirTree) putNode(path Path, node *DirTreeNode) (*DirTree, bool) {
+	tree, i := node.append(t, path)
+	if i == -1 {
+		return tree, tree != nil
+	}
+	dir := tree.PutDir(path[i:])
+	return dir, dir != nil
+}
+
+func (n *DirTreeNode) append(parent *DirTree, newPath Path) (*DirTree, int) {
+	dir, ok := n.DirValue()
+	if !ok {
+		return nil, -1
+	}
+	path := dir.name
+	i, ok := path.IndexMatch(newPath)
+	if !ok {
+		return nil, -1
+	}
+
+	i++
+	if i == len(path) {
+		return dir.Tree().PutDir(newPath[i:]), -1
+	}
+
+	// Remove node path
+	parent.Remove(path)
+
+	// Add new path as base
+	oldDir := dir
+	dir = NewDirValue(path[:i])
+	parent.Add(dir)
+	tree := dir.Tree()
+
+	// update old path, add to base
+	oldDir.name = path[i:]
+	tree.Add(oldDir)
+	return tree, i
 }
 
 type DirList list.List

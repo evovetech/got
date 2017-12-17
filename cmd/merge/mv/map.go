@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"os"
 	"regexp"
 )
 
 type Map struct {
-	AddDelMap             `json:"-"`
-	Renames  []Rename
-	Projects Projects
-	Tree     file.DirTree `json:"-"`
+	AddDelMap `json:"-"`
+	Renames   []Rename
+	Projects  Projects
+	Tree      file.DirTree `json:"-"`
 	//Files     map[string]file.Dir
 	//Mvs map[string]
 }
@@ -111,6 +112,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
+	log.Println(m.Tree.String())
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {

@@ -24,10 +24,10 @@ func Printf(format string, v ...interface{}) {
 	Std.Printf(format, v...)
 }
 
-func IndentIn() int {
-	return indent.In()
+func IndentIn() {
+	indent.In()
 }
 
-func IndentOut() int {
-	return indent.Out()
+func IndentOut() {
+	indent.Out()
 }

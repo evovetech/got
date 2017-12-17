@@ -25,8 +25,8 @@ func (p *Path) Init() Path {
 	return path
 }
 
-func (p Path) IsRoot() bool {
-	return p[0] == "."
+func (p *Path) IsRoot() bool {
+	return p.Init()[0] == "."
 }
 
 func (p Path) OsPath() string {
