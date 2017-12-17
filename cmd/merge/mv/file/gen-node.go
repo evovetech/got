@@ -6,7 +6,7 @@ package file
 
 import "encoding/json"
 
-type StringPath = []String
+type StringList = []String
 
 type StringNode struct {
 	Value String
@@ -18,7 +18,7 @@ func NewStringNode(val String) *StringNode {
 	return &StringNode{Value: val}
 }
 
-func ParseStringPath(path StringPath) *StringNode {
+func ParseStringPath(path StringList) *StringNode {
 	var node *StringNode
 	if l := len(path); l > 0 {
 		node = NewStringNode(path[0])

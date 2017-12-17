@@ -2,6 +2,10 @@ go_resource "github.com/cheekybits/genny" do
   url "https://github.com/cheekybits/genny", :using => :git, :revision => "9127e812e1e9e501ce899a18121d316ecb52e4ba"
 end
 
+go_resource "github.com/emirpasic/gods" do
+  url "https://github.com/emirpasic/gods", :using => :git, :revision => "f6c17b524822278a87e3b3bd809fec33b51f5b46"
+end
+
 go_resource "github.com/inconshreveable/mousetrap" do
   url "https://github.com/inconshreveable/mousetrap", :using => :git, :revision => "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 end

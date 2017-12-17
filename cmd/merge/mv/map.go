@@ -4,30 +4,33 @@ import (
 	"fmt"
 	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"os"
 	"regexp"
 )
 
 type Map struct {
-	AddDelMap `json:"-"`
-	Renames   []Rename
-	Projects  Projects
-	Root      file.StringNode
+	AddDelMap             `json:"-"`
+	Renames  []Rename
+	Projects Projects
+	Tree     file.DirTree `json:"-"`
+	//Files     map[string]file.Dir
+	//Mvs map[string]
 }
 
-var reAdd = regexp.MustCompile("^A\\s+(.*)")
-var reDel = regexp.MustCompile("^D\\s+(.*)")
-var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)")
+var reAdd = regexp.MustCompile("^A\\s+(.*)$")
+var reDel = regexp.MustCompile("^D\\s+(.*)$")
+var reRename = regexp.MustCompile("^R\\s+(.*)\\s+->\\s+(.*)$")
 var reSrc = regexp.MustCompile("^(.*)/?src/(.*)$")
 
 func NewMap() *Map {
-	return &Map{
+	m := &Map{
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
-		Root:      file.RootStringNode,
+		//Files:     make(map[string]file.Dir),
+		Tree: *file.NewDirTree(),
 	}
+	return m
 }
 
 func (m *Map) Run() ([]*Group, []Rename) {
@@ -48,6 +51,31 @@ func (m *Map) Run() ([]*Group, []Rename) {
 		}
 	}
 	for _, pair := range m.Renames {
+		//dir := file.NewDir()
+		//p1, f1 := file.GetFile(pair.From.actual, file.Del|file.Rn)
+		//p2, f2 := file.GetFile(pair.To.actual, file.Add|file.Rn)
+		//d1 := dir.Add(p1, f1)
+		//d2 := dir.Add(p2, f2)
+		//if d1 != d2 {
+		//	if f1.Name != f2.Name {
+		//		// TODO:
+		//		break
+		//	}
+		//	// changed directories
+		//	root := dir.Dirs()[0]
+		//	v := struct {
+		//		Root file.Path
+		//		From file.Path
+		//		To   file.Path
+		//		File string
+		//	}{
+		//		Root: root.Name(),
+		//		From: d1.Name(),
+		//		To:   d2.Name(),
+		//		File: f1.Name,
+		//	}
+		//	log.Printf("rename: %s", util.String(v))
+		//}
 		m.add(pair.From, Del|Rn)
 		m.add(pair.To, Add|Rn)
 	}
@@ -68,7 +96,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 					index = i
 					f := *mf
 					m.addOther(f)
-					log.Printf("adding module[%s] = %s", m.Name, f)
+					//log.Printf("adding module[%s] = %s", m.Name, f)
 					break
 				}
 			}
@@ -79,7 +107,10 @@ func (m *Map) parse() ([]*Group, []Rename) {
 		p.Others = others
 	}
 
-	log.Printf("nodes: %s", util.String(m.Root))
+	//log.Printf("node1: %s", util.String(m.Root))
+	//log.Printf("add: %s", util.String(m.Add))
+	//log.Printf("add: %s", util.String(m.Add))
+	//log.Printf("files: %s", util.String(m.Files))
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {
@@ -106,9 +137,18 @@ func (m *Map) getProject(dir DirPath) *Project {
 }
 
 func (m *Map) add(fp FilePath, typ Type) {
-	if node := file.ParseString(fp.slashy); node != nil {
-		m.Root.Add(node)
-	}
+	//if node := file.ParseString(fp.slashy); node != nil {
+	//	m.Root.Add(node)
+	//}
+	//path, f := file.GetFile(fp.actual, file.Type(typ))
+	//dir, ok := m.Files[f.Name]
+	//if !ok {
+	//	dir = file.NewDir()
+	//	m.Files[f.Name] = dir
+	//}
+	//dir.Add(path, f)
+	//m.Root.AddFile(fp.actual, file.Type(typ))
+	m.Tree.PutFilePath(fp.actual, file.Type(typ))
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := m.getProject(src.Project)
@@ -123,7 +163,7 @@ func (m *Map) add(fp FilePath, typ Type) {
 	} else {
 		f := newProjectFile(fp, fp.slashy)
 		f.Type = typ
-		log.Printf("newProjectFile -> %s", util.String(f))
+		//log.Printf("newProjectFile -> %s", util.String(f))
 		p := m.getProject(f.Project)
 		p.Others = append(p.Others, *f)
 	}

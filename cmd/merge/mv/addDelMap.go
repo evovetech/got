@@ -26,11 +26,7 @@ func (m AddDelMap) do(file string, typ Type) FilePath {
 	file = strings.Trim(file, "\"")
 	fp := GetFilePath(file)
 	fName := fp.LoName()
-	mv, ok := m[fName]
-	if !ok {
-		mv = &Group{FileName: fName}
-		m[fName] = mv
-	}
+	mv := m.getOrCreate(fName)
 	switch {
 	case typ.HasFlag(Add):
 		mv.Add(fp)
@@ -38,4 +34,13 @@ func (m AddDelMap) do(file string, typ Type) FilePath {
 		mv.Del(fp)
 	}
 	return fp
+}
+
+func (m AddDelMap) getOrCreate(fName string) *Group {
+	g, ok := m[fName]
+	if !ok {
+		g = &Group{FileName: fName}
+		m[fName] = g
+	}
+	return g
 }

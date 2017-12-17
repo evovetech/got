@@ -9,7 +9,7 @@ import (
 
 type T_ generic.Type
 
-type T_Path = []T_
+type T_List = []T_
 
 type T_Node struct {
 	Value T_
@@ -21,7 +21,7 @@ func NewT_Node(val T_) *T_Node {
 	return &T_Node{Value: val}
 }
 
-func ParseT_Path(path T_Path) *T_Node {
+func ParseT_Path(path T_List) *T_Node {
 	var node *T_Node
 	if l := len(path); l > 0 {
 		node = NewT_Node(path[0])

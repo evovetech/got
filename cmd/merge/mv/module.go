@@ -3,7 +3,6 @@ package mv
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/evovetech/got/log"
 	"regexp"
 )
 
@@ -54,7 +53,7 @@ func (m *Module) parse(pf ProjectFile) *ModuleFile {
 		f.RelPath = GetFilePath(match[1])
 		return f
 	}
-	log.Printf("\\%s\\unable to parse '%s'", m.re, fp)
+	//log.Printf("\\%s\\unable to parse '%s'", m.re, fp)
 	return nil
 }
 
