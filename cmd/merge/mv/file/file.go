@@ -10,6 +10,7 @@ type File interface {
 	Entry
 	Name() string
 	Type() Type
+	CopyWithParent(parent Path) File
 }
 
 type file struct {
@@ -21,9 +22,13 @@ func GetFile(file string, typ Type) (Path, File) {
 	return path.Dir(), NewFile(path.Name(), typ)
 }
 
-func NewFile(name string, typ Type) File {
+func NewFile(file string, typ Type) File {
+	return NewFileWithPath(GetPath(file), typ)
+}
+
+func NewFileWithPath(path Path, typ Type) File {
 	f := new(file)
-	f.path = GetPath(name)
+	f.path = path
 	f.value = typ
 	return f
 }
@@ -40,8 +45,13 @@ func (f *file) IsDir() bool {
 	return false
 }
 
+func (f *file) CopyWithParent(parent Path) File {
+	path := f.path.CopyWithPrefix(parent)
+	return NewFileWithPath(path, f.Type())
+}
+
 func (f file) String() string {
-	return fmt.Sprintf("%s: '%s'", f.Type(), f.Name())
+	return fmt.Sprintf("%s: '%s'", f.Type(), f.Path().String())
 }
 
 func (f file) MarshalJSON() ([]byte, error) {

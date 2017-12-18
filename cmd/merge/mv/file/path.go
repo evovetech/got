@@ -8,7 +8,24 @@ import (
 	"strings"
 )
 
+const (
+	SRC = "src"
+)
+
 type Path []string
+
+var (
+	rootPath = GetPath("")
+	srcPath  = GetPath(SRC)
+)
+
+func RootPath() Path {
+	return rootPath.Copy()
+}
+
+func SrcPath() Path {
+	return srcPath.Copy()
+}
 
 func GetPath(file string) Path {
 	p := ospath.ToSlash(file)
@@ -19,7 +36,7 @@ func GetPath(file string) Path {
 func (p *Path) Init() Path {
 	var path Path
 	if path = *p; len(path) == 0 {
-		path = GetPath("")
+		path = RootPath()
 		*p = path
 	}
 	return path
@@ -27,6 +44,12 @@ func (p *Path) Init() Path {
 
 func (p *Path) IsRoot() bool {
 	return p.Init()[0] == "."
+}
+
+func (p Path) Copy() Path {
+	n := make(Path, len(p))
+	copy(n, p)
+	return n
 }
 
 func (p Path) Equals(o Path) bool {
@@ -62,6 +85,34 @@ func (p Path) IsDir() bool {
 		return info.Mode().IsDir()
 	}
 	return false
+}
+
+func (p Path) CopyWithPrefix(prefix Path) Path {
+	switch {
+	case p.IsRoot():
+		return prefix
+	case prefix.IsRoot():
+		return p
+	}
+	m := len(prefix)
+	n := m + len(p)
+	c := make(Path, n)
+	copy(c, prefix)
+	copy(c[m:n], p)
+	return c
+}
+
+func (p Path) IndexOf(segment string) (int, bool) {
+	for i, l := 0, len(p); i < l; i++ {
+		if p[i] == segment {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func (p Path) SrcIndex() (int, bool) {
+	return p.IndexOf(SRC)
 }
 
 func (p Path) String() string {

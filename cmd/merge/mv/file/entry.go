@@ -10,6 +10,8 @@ type Entry interface {
 	Path() Path
 	Value() interface{}
 	IsDir() bool
+	File() (File, bool)
+	Dir() (Dir, bool)
 
 	// private
 	setPath(path Path)
@@ -27,6 +29,16 @@ func (e *entry) Value() interface{} {
 
 func (e *entry) Path() Path {
 	return e.path.Init()
+}
+
+func (e *entry) File() (File, bool) {
+	f, ok := e.value.(File)
+	return f, ok
+}
+
+func (e *entry) Dir() (Dir, bool) {
+	d, ok := e.value.(Dir)
+	return d, ok
 }
 
 func (e *entry) setPath(path Path) {
