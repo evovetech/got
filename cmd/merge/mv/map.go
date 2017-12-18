@@ -15,7 +15,7 @@ type Map struct {
 	AddDelMap `json:"-"`
 	Renames   []Rename
 	Projects  Projects
-	Tree      tree.Tree `json:"-"`
+	Root      tree.DirEntry `json:"-"`
 	//Files     map[string]file.Dir
 	//Mvs map[string]
 }
@@ -30,7 +30,7 @@ func NewMap() *Map {
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
 		//Files:     make(map[string]file.Dir),
-		Tree: *tree.New(),
+		Root: tree.NewRoot(),
 	}
 	return m
 }
@@ -113,7 +113,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
-	log.Println(m.Tree.String())
+	log.Println(m.Root.String())
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {
@@ -151,7 +151,7 @@ func (m *Map) add(fp FilePath, typ Type) {
 	//}
 	//dir.Add(path, f)
 	//m.Root.AddFile(fp.actual, file.Type(typ))
-	m.Tree.PutFilePath(fp.actual, file.Type(typ))
+	m.Root.Tree().PutFilePath(fp.actual, file.Type(typ))
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := m.getProject(src.Project)

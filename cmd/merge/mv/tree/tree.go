@@ -3,7 +3,6 @@ package tree
 import (
 	"bytes"
 	"github.com/emirpasic/gods/trees/avltree"
-	"github.com/emirpasic/gods/utils"
 	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/log"
 )
@@ -12,27 +11,7 @@ type Tree struct {
 	*avltree.Tree
 }
 
-func minInt(a, b int) int {
-	if a <= b {
-		return a
-	}
-	return b
-}
-
-func PathComparator(a, b interface{}) int {
-	ap := a.(file.Path)
-	bp := b.(file.Path)
-	min := minInt(len(ap), len(bp))
-	comp := utils.StringComparator
-	for i := 0; i < min; i++ {
-		if diff := comp(ap[i], bp[i]); diff != 0 {
-			return diff
-		}
-	}
-	return len(ap) - len(bp)
-}
-
-func New() *Tree {
+func newTree() *Tree {
 	return &Tree{avltree.NewWith(PathComparator)}
 }
 
@@ -45,7 +24,7 @@ func (t *Tree) Get(path file.Path) (Entry, bool) {
 	return nil, false
 }
 
-func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, *File) {
+func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, FileEntry) {
 	var parent *Tree
 	path, f := file.GetFile(fp, typ)
 	if path.IsRoot() {
@@ -67,47 +46,48 @@ func (t *Tree) PutDir(path file.Path) *Tree {
 	} else if tree, ok := t.putCeil(path); ok {
 		return tree
 	}
-	return t.AddDir(path)
+	return t.AddDir(path).Tree()
 }
 
-func (t *Tree) Add(v Entry) {
-	t.Put(v.Key(), v)
+func (t *Tree) Add(e Entry) {
+	t.Put(e.Key(), e)
 }
 
-func (t *Tree) AddFile(file file.File) *File {
-	v := NewFile(file)
-	t.Add(v)
-	return v
+func (t *Tree) AddFile(file file.File) FileEntry {
+	e := NewFileEntry(file)
+	t.Add(e)
+	return e
 }
 
-func (t *Tree) AddDir(path file.Path) *Tree {
-	v := NewDir(path)
-	t.Add(v)
-	return v.Tree()
+func (t *Tree) AddDir(path file.Path) DirEntry {
+	e := NewDirEntry(path)
+	t.Add(e)
+	return e
 }
 
-func (t *Tree) Files() (files []file.File) {
+func (t *Tree) Files() (files []FileEntry) {
 	for it := t.Iterator(); it.Next(); {
-		switch v := it.Value().(type) {
-		case *File:
-			files = append(files, v.File())
+		switch e := it.Value().(type) {
+		case FileEntry:
+			files = append(files, e)
 		}
 	}
 	return
 }
 
-func (t *Tree) Dirs() (dirs []*Dir) {
+func (t *Tree) Dirs() (dirs []DirEntry) {
 	for it := t.Iterator(); it.Next(); {
-		switch v := it.Value().(type) {
-		case *Dir:
-			dirs = append(dirs, v)
+		switch e := it.Value().(type) {
+		case DirEntry:
+			dirs = append(dirs, e)
 		}
 	}
 	return
 }
 
 func (t *Tree) MvCount() (add int, del int) {
-	for _, f := range t.Files() {
+	for _, e := range t.Files() {
+		f := e.File()
 		switch {
 		case f.Type.HasFlag(file.Add):
 			add++
@@ -126,27 +106,8 @@ func (t *Tree) MvCount() (add int, del int) {
 func (t *Tree) String() string {
 	var buf bytes.Buffer
 	l := log.NewBufLogger(&buf)
-	t.log(l, file.GetPath(""))
+	t.log(l)
 	return buf.String()
-}
-
-func (t *Tree) log(logger *log.Logger, path file.Path) {
-	logger.Enter(path, func(l *log.Logger) {
-		//l.Println(t.Tree.String())
-		add, del := t.MvCount()
-		if add > 0 {
-			l.Printf("A: %d\n", add)
-		}
-		if del > 0 {
-			l.Printf("D: %d\n", del)
-		}
-		//for _, f := range t.Files() {
-		//	l.Println(f.String())
-		//}
-		for _, dir := range t.Dirs() {
-			dir.Tree().log(l, dir.Key())
-		}
-	})
 }
 
 func (t *Tree) putFloor(path file.Path) (*Tree, bool) {
@@ -165,7 +126,7 @@ func (t *Tree) putCeil(path file.Path) (*Tree, bool) {
 
 func (t *Tree) putNode(path file.Path, node *Node) (*Tree, bool) {
 	if e := node.Entry(); path.Equals(e.Key()) {
-		return e.(*Dir).Tree(), true
+		return e.(DirEntry).Tree(), true
 	}
 	tree, i := node.append(t, path)
 	if i == -1 {
@@ -173,4 +134,21 @@ func (t *Tree) putNode(path file.Path, node *Node) (*Tree, bool) {
 	}
 	dir := tree.PutDir(path[i:])
 	return dir, dir != nil
+}
+
+func (t *Tree) log(l *log.Logger) {
+	//l.Println(t.Tree.String())
+	add, del := t.MvCount()
+	if add > 0 {
+		l.Printf("A: %d\n", add)
+	}
+	if del > 0 {
+		l.Printf("D: %d\n", del)
+	}
+	//for _, f := range t.Files() {
+	//	l.Println(f.String())
+	//}
+	for _, dir := range t.Dirs() {
+		dir.log(l)
+	}
 }

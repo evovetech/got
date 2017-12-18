@@ -15,13 +15,13 @@ func (n *Node) Entry() Entry {
 	return n.Value.(Entry)
 }
 
-func (n *Node) Dir() (*Dir, bool) {
-	dir, ok := n.Value.(*Dir)
+func (n *Node) Dir() (DirEntry, bool) {
+	dir, ok := n.Value.(DirEntry)
 	return dir, ok
 }
 
-func (n *Node) File() (*File, bool) {
-	f, ok := n.Value.(*File)
+func (n *Node) File() (FileEntry, bool) {
+	f, ok := n.Value.(FileEntry)
 	return f, ok
 }
 
@@ -30,7 +30,7 @@ func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
 	if !ok {
 		return nil, -1
 	}
-	path := dir.key
+	path := dir.Key()
 	i, ok := path.IndexMatch(newPath)
 	if !ok {
 		return nil, -1
@@ -46,12 +46,12 @@ func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
 
 	// Add new path as base
 	oldDir := dir
-	dir = NewDir(path[:i])
+	dir = NewDirEntry(path[:i])
 	parent.Add(dir)
 	tree := dir.Tree()
 
 	// update old path, add to base
-	oldDir.key = path[i:]
+	oldDir.setKey(path[i:])
 	tree.Add(oldDir)
 	return tree, i
 }
