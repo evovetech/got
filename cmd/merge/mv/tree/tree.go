@@ -20,18 +20,6 @@ func New() *Tree {
 	return &Tree{avltree.NewWith(PathComparator)}
 }
 
-func (t *Tree) log(logger *log.Logger, path file.Path) {
-	logger.Enter(path, func(l *log.Logger) {
-		l.Println(t.Tree.String())
-		for _, f := range t.Files() {
-			l.Println(f.String())
-		}
-		for _, dir := range t.Dirs() {
-			dir.log(l)
-		}
-	})
-}
-
 func (t *Tree) String() string {
 	var buf bytes.Buffer
 	l := log.NewBufLogger(&buf)
@@ -59,9 +47,9 @@ func (t *Tree) Dirs() (dirs []*Dir) {
 	return
 }
 
-func (t *Tree) Get(path file.Path) (Value, bool) {
+func (t *Tree) Get(path file.Path) (Entry, bool) {
 	if v, ok := t.Tree.Get(path); ok {
-		if val, ok := v.(Value); ok {
+		if val, ok := v.(Entry); ok {
 			return val, true
 		}
 	}
@@ -86,22 +74,17 @@ func (t *Tree) PutDir(path file.Path) *Tree {
 	if path.IsRoot() {
 		return t
 	} else if cur, ok := t.Get(path); ok {
-		dir := cur.(*Dir)
-		//log.Printf("cur[%s] = %s", path, dir.String())
-		return dir.Tree()
+		return cur.(*Dir).Tree()
 	} else if tree, ok := t.putCeil(path); ok {
-		//log.Printf("ceil[%s] = %s", path, tree.String())
 		return tree
 	} else if tree, ok := t.putFloor(path); ok {
-		//log.Printf("floor[%s] = %s", path, tree.String())
 		return tree
 	}
-	return t.addDir(path)
+	return t.AddDir(path)
 }
 
-func (t *Tree) Add(v Value) {
-	//log.Printf("adding %s", v)
-	t.Put(v.Path(), v)
+func (t *Tree) Add(v Entry) {
+	t.Put(v.Key(), v)
 }
 
 func (t *Tree) AddFile(file file.File) *File {
@@ -110,7 +93,7 @@ func (t *Tree) AddFile(file file.File) *File {
 	return v
 }
 
-func (t *Tree) addDir(path file.Path) *Tree {
+func (t *Tree) AddDir(path file.Path) *Tree {
 	v := NewDir(path)
 	t.Add(v)
 	return v.Tree()

@@ -11,8 +11,8 @@ func node(node *avltree.Node) *Node {
 	return (*Node)(node)
 }
 
-func (n *Node) GetValue() Value {
-	return n.Value.(Value)
+func (n *Node) Entry() Entry {
+	return n.Value.(Entry)
 }
 
 func (n *Node) Dir() (*Dir, bool) {
@@ -30,7 +30,7 @@ func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
 	if !ok {
 		return nil, -1
 	}
-	path := dir.path
+	path := dir.key
 	i, ok := path.IndexMatch(newPath)
 	if !ok {
 		return nil, -1
@@ -51,7 +51,7 @@ func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
 	tree := dir.Tree()
 
 	// update old path, add to base
-	oldDir.path = path[i:]
+	oldDir.key = path[i:]
 	tree.Add(oldDir)
 	return tree, i
 }
