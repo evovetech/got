@@ -1,17 +1,16 @@
-package tree
+package file
 
 import (
 	"bytes"
 	"github.com/emirpasic/gods/trees/avltree"
-	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/log"
 )
 
 type DirEntry interface {
 	Entry
 
-	PutFile(fp string, typ file.Type) (DirEntry, FileEntry)
-	PutDir(path file.Path) DirEntry
+	PutFile(fp string, typ Type) (DirEntry, FileEntry)
+	PutDir(path Path) DirEntry
 
 	Files() []FileEntry
 	Dirs() []DirEntry
@@ -21,8 +20,8 @@ type DirEntry interface {
 	// private
 	tree() *avltree.Tree
 	add(e Entry)
-	addDir(path file.Path) DirEntry
-	addFile(file file.File) FileEntry
+	addDir(path Path) DirEntry
+	addFile(file File) FileEntry
 }
 
 type dirEntry struct {
@@ -30,10 +29,10 @@ type dirEntry struct {
 }
 
 func NewRoot() DirEntry {
-	return NewDirEntry(file.GetPath(""))
+	return NewDirEntry(GetPath(""))
 }
 
-func NewDirEntry(path file.Path) DirEntry {
+func NewDirEntry(path Path) DirEntry {
 	e := new(dirEntry)
 	e.key = path
 	e.value = avltree.NewWith(PathComparator)

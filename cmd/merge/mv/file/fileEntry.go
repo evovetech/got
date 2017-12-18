@@ -1,13 +1,12 @@
-package tree
+package file
 
 import (
-	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/log"
 )
 
 type FileEntry interface {
 	Entry
-	File() file.File
+	File() File
 }
 
 type fileEntry struct {
@@ -18,8 +17,8 @@ func (e *fileEntry) IsDir() bool {
 	return false
 }
 
-func (e *fileEntry) File() file.File {
-	return e.value.(file.File)
+func (e *fileEntry) File() File {
+	return e.value.(File)
 }
 
 func (e fileEntry) String() string {
@@ -30,9 +29,9 @@ func (e *fileEntry) log(l *log.Logger) {
 	l.Println(e.String())
 }
 
-func NewFileEntry(f file.File) FileEntry {
+func NewFileEntry(f File) FileEntry {
 	e := new(fileEntry)
-	e.key = file.GetPath(f.Name)
+	e.key = GetPath(f.Name)
 	e.value = f
 	return e
 }

@@ -1,8 +1,7 @@
-package tree
+package file
 
 import (
 	"github.com/emirpasic/gods/trees/avltree"
-	"github.com/evovetech/got/cmd/merge/mv/file"
 )
 
 type Node avltree.Node
@@ -25,7 +24,7 @@ func (n *Node) File() (FileEntry, bool) {
 	return f, ok
 }
 
-func (n *Node) append(parent DirEntry, newPath file.Path) (DirEntry, int) {
+func (n *Node) append(parent DirEntry, newPath Path) (DirEntry, int) {
 	dir, ok := n.Dir()
 	if !ok {
 		return nil, -1

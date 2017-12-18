@@ -3,7 +3,6 @@ package mv
 import (
 	"fmt"
 	"github.com/evovetech/got/cmd/merge/mv/file"
-	"github.com/evovetech/got/cmd/merge/mv/tree"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
@@ -15,7 +14,7 @@ type Map struct {
 	AddDelMap `json:"-"`
 	Renames   []Rename
 	Projects  Projects
-	Root      tree.DirEntry `json:"-"`
+	Root      file.DirEntry `json:"-"`
 	//Files     map[string]file.Dir
 	//Mvs map[string]
 }
@@ -30,7 +29,7 @@ func NewMap() *Map {
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
 		//Files:     make(map[string]file.Dir),
-		Root: tree.NewRoot(),
+		Root: file.NewRoot(),
 	}
 	return m
 }
