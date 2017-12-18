@@ -9,10 +9,11 @@ func (d *dirEntry) Get(path Path) (Entry, bool) {
 	return nil, false
 }
 
-func (d *dirEntry) PutFile(fp string, typ Type) (DirEntry, FileEntry) {
+func (d *dirEntry) PutFile(fp string, typ Type) (DirEntry, File) {
 	path, f := GetFile(fp, typ)
 	if dir := d.PutDir(path); dir != nil {
-		return dir, dir.addFile(f)
+		dir.add(f)
+		return dir, f
 	}
 	return nil, nil
 }
@@ -28,10 +29,10 @@ func (d *dirEntry) PutDir(path Path) DirEntry {
 	return d.addDir(path)
 }
 
-func (d *dirEntry) Files() (files []FileEntry) {
+func (d *dirEntry) Files() (files []File) {
 	for it := d.tree().Iterator(); it.Next(); {
 		switch e := it.Value().(type) {
-		case FileEntry:
+		case File:
 			files = append(files, e)
 		}
 	}
@@ -49,12 +50,11 @@ func (d *dirEntry) Dirs() (dirs []DirEntry) {
 }
 
 func (d *dirEntry) MvCount() (add int, del int) {
-	for _, e := range d.Files() {
-		f := e.File()
+	for _, f := range d.Files() {
 		switch {
-		case f.Type.HasFlag(Add):
+		case f.Type().HasFlag(Add):
 			add++
-		case f.Type.HasFlag(Del):
+		case f.Type().HasFlag(Del):
 			del++
 		}
 	}
@@ -67,13 +67,7 @@ func (d *dirEntry) MvCount() (add int, del int) {
 }
 
 func (d *dirEntry) add(e Entry) {
-	d.tree().Put(e.Key(), e)
-}
-
-func (d *dirEntry) addFile(file File) FileEntry {
-	e := NewFileEntry(file)
-	d.add(e)
-	return e
+	d.tree().Put(e.Path(), e)
 }
 
 func (d *dirEntry) addDir(path Path) DirEntry {
@@ -97,7 +91,7 @@ func (d *dirEntry) putCeil(path Path) (DirEntry, bool) {
 }
 
 func (d *dirEntry) putNode(path Path, node *Node) (DirEntry, bool) {
-	if e := node.Entry(); path.Equals(e.Key()) {
+	if e := node.Entry(); path.Equals(e.Path()) {
 		return e.(DirEntry), true
 	}
 	tree, i := node.append(d, path)

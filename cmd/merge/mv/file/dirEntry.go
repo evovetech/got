@@ -9,10 +9,10 @@ import (
 type DirEntry interface {
 	Entry
 
-	PutFile(fp string, typ Type) (DirEntry, FileEntry)
+	PutFile(fp string, typ Type) (DirEntry, File)
 	PutDir(path Path) DirEntry
 
-	Files() []FileEntry
+	Files() []File
 	Dirs() []DirEntry
 
 	MvCount() (add int, del int)
@@ -21,7 +21,6 @@ type DirEntry interface {
 	tree() *avltree.Tree
 	add(e Entry)
 	addDir(path Path) DirEntry
-	addFile(file File) FileEntry
 }
 
 type dirEntry struct {
@@ -34,7 +33,7 @@ func NewRoot() DirEntry {
 
 func NewDirEntry(path Path) DirEntry {
 	e := new(dirEntry)
-	e.key = path
+	e.path = path
 	e.value = avltree.NewWith(PathComparator)
 	return e
 }
@@ -55,7 +54,7 @@ func (d *dirEntry) tree() *avltree.Tree {
 }
 
 func (d *dirEntry) log(logger *log.Logger) {
-	logger.Enter(d.Key(), func(l *log.Logger) {
+	logger.Enter(d.Path(), func(l *log.Logger) {
 		//l.Println(d.tree.String())
 		add, del := d.MvCount()
 		if add > 0 {

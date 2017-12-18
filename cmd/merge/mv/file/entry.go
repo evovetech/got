@@ -7,23 +7,18 @@ import (
 
 type Entry interface {
 	fmt.Stringer
-	Key() Path
+	Path() Path
 	Value() interface{}
 	IsDir() bool
-	Path() Path
 
 	// private
-	setKey(key Path)
+	setPath(path Path)
 	log(l *log.Logger)
 }
 
 type entry struct {
-	key   Path
+	path  Path
 	value interface{}
-}
-
-func (e *entry) Key() Path {
-	return e.key.Init()
 }
 
 func (e *entry) Value() interface{} {
@@ -31,9 +26,9 @@ func (e *entry) Value() interface{} {
 }
 
 func (e *entry) Path() Path {
-	return e.Key()
+	return e.path.Init()
 }
 
-func (e *entry) setKey(key Path) {
-	e.key = key
+func (e *entry) setPath(path Path) {
+	e.path = path
 }
