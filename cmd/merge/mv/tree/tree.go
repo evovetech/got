@@ -12,39 +12,28 @@ type Tree struct {
 	*avltree.Tree
 }
 
+func minInt(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
+}
+
 func PathComparator(a, b interface{}) int {
-	return utils.StringComparator(a.(file.Path).String(), b.(file.Path).String())
+	ap := a.(file.Path)
+	bp := b.(file.Path)
+	min := minInt(len(ap), len(bp))
+	comp := utils.StringComparator
+	for i := 0; i < min; i++ {
+		if diff := comp(ap[i], bp[i]); diff != 0 {
+			return diff
+		}
+	}
+	return len(ap) - len(bp)
 }
 
 func New() *Tree {
 	return &Tree{avltree.NewWith(PathComparator)}
-}
-
-func (t *Tree) String() string {
-	var buf bytes.Buffer
-	l := log.NewBufLogger(&buf)
-	t.log(l, file.GetPath(""))
-	return buf.String()
-}
-
-func (t *Tree) Files() (files []file.File) {
-	for it := t.Tree.Iterator(); it.Next(); {
-		switch v := it.Value().(type) {
-		case *File:
-			files = append(files, v.File())
-		}
-	}
-	return
-}
-
-func (t *Tree) Dirs() (dirs []*Dir) {
-	for it := t.Tree.Iterator(); it.Next(); {
-		switch v := it.Value().(type) {
-		case *Dir:
-			dirs = append(dirs, v)
-		}
-	}
-	return
 }
 
 func (t *Tree) Get(path file.Path) (Entry, bool) {
@@ -73,9 +62,9 @@ func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, *File) {
 func (t *Tree) PutDir(path file.Path) *Tree {
 	if path.IsRoot() {
 		return t
-	} else if tree, ok := t.putCeil(path); ok {
-		return tree
 	} else if tree, ok := t.putFloor(path); ok {
+		return tree
+	} else if tree, ok := t.putCeil(path); ok {
 		return tree
 	}
 	return t.AddDir(path)
@@ -95,6 +84,69 @@ func (t *Tree) AddDir(path file.Path) *Tree {
 	v := NewDir(path)
 	t.Add(v)
 	return v.Tree()
+}
+
+func (t *Tree) Files() (files []file.File) {
+	for it := t.Iterator(); it.Next(); {
+		switch v := it.Value().(type) {
+		case *File:
+			files = append(files, v.File())
+		}
+	}
+	return
+}
+
+func (t *Tree) Dirs() (dirs []*Dir) {
+	for it := t.Iterator(); it.Next(); {
+		switch v := it.Value().(type) {
+		case *Dir:
+			dirs = append(dirs, v)
+		}
+	}
+	return
+}
+
+func (t *Tree) MvCount() (add int, del int) {
+	for _, f := range t.Files() {
+		switch {
+		case f.Type.HasFlag(file.Add):
+			add++
+		case f.Type.HasFlag(file.Del):
+			del++
+		}
+	}
+	for _, dir := range t.Dirs() {
+		a, d := dir.Tree().MvCount()
+		add += a
+		del += d
+	}
+	return
+}
+
+func (t *Tree) String() string {
+	var buf bytes.Buffer
+	l := log.NewBufLogger(&buf)
+	t.log(l, file.GetPath(""))
+	return buf.String()
+}
+
+func (t *Tree) log(logger *log.Logger, path file.Path) {
+	logger.Enter(path, func(l *log.Logger) {
+		//l.Println(t.Tree.String())
+		add, del := t.MvCount()
+		if add > 0 {
+			l.Printf("A: %d\n", add)
+		}
+		if del > 0 {
+			l.Printf("D: %d\n", del)
+		}
+		//for _, f := range t.Files() {
+		//	l.Println(f.String())
+		//}
+		for _, dir := range t.Dirs() {
+			dir.Tree().log(l, dir.Key())
+		}
+	})
 }
 
 func (t *Tree) putFloor(path file.Path) (*Tree, bool) {
