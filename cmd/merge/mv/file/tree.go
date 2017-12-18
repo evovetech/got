@@ -12,7 +12,7 @@ func (d *dir) Get(path Path) (Entry, bool) {
 func (d *dir) PutFile(fp string, typ Type) (Dir, File) {
 	path, f := GetFile(fp, typ)
 	if dir := d.PutDir(path); dir != nil {
-		dir.add(f)
+		dir.put(f)
 		return dir, f
 	}
 	return nil, nil
@@ -26,7 +26,7 @@ func (d *dir) PutDir(path Path) Dir {
 	} else if tree, ok := d.putCeil(path); ok {
 		return tree
 	}
-	return d.addDir(path)
+	return d.putDir(path)
 }
 
 func (d *dir) Files() (files []File) {
@@ -72,13 +72,13 @@ func (d *dir) MvCount() TypeCount {
 	return tc
 }
 
-func (d *dir) add(e Entry) {
+func (d *dir) put(e Entry) {
 	d.tree().Put(e.Path(), e)
 }
 
-func (d *dir) addDir(path Path) Dir {
+func (d *dir) putDir(path Path) Dir {
 	e := NewDir(path)
-	d.add(e)
+	d.put(e)
 	return e
 }
 

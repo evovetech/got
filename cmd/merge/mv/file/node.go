@@ -46,10 +46,10 @@ func (n *Node) append(parent Dir, newPath Path) (Dir, int) {
 	// Add new path as base
 	oldDir := dir
 	dir = NewDir(path[:i])
-	parent.add(dir)
+	parent.put(dir)
 
 	// update old path, add to base
 	oldDir.setPath(path[i:])
-	dir.add(oldDir)
+	dir.put(oldDir)
 	return dir, i
 }

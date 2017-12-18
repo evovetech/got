@@ -19,8 +19,8 @@ type Dir interface {
 
 	// private
 	tree() *avltree.Tree
-	add(e Entry)
-	addDir(path Path) Dir
+	put(e Entry)
+	putDir(path Path) Dir
 }
 
 type dir struct {
