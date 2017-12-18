@@ -6,54 +6,54 @@ import (
 	"github.com/evovetech/got/log"
 )
 
-type DirEntry interface {
+type Dir interface {
 	Entry
 
-	PutFile(fp string, typ Type) (DirEntry, File)
-	PutDir(path Path) DirEntry
+	PutFile(fp string, typ Type) (Dir, File)
+	PutDir(path Path) Dir
 
 	Files() []File
-	Dirs() []DirEntry
+	Dirs() []Dir
 
 	MvCount() (add int, del int)
 
 	// private
 	tree() *avltree.Tree
 	add(e Entry)
-	addDir(path Path) DirEntry
+	addDir(path Path) Dir
 }
 
-type dirEntry struct {
+type dir struct {
 	entry
 }
 
-func NewRoot() DirEntry {
-	return NewDirEntry(GetPath(""))
+func NewRoot() Dir {
+	return NewDir(GetPath(""))
 }
 
-func NewDirEntry(path Path) DirEntry {
-	e := new(dirEntry)
+func NewDir(path Path) Dir {
+	e := new(dir)
 	e.path = path
 	e.value = avltree.NewWith(PathComparator)
 	return e
 }
 
-func (d *dirEntry) IsDir() bool {
+func (d *dir) IsDir() bool {
 	return true
 }
 
-func (d *dirEntry) String() string {
+func (d *dir) String() string {
 	var buf bytes.Buffer
 	l := log.NewBufLogger(&buf)
 	d.log(l)
 	return buf.String()
 }
 
-func (d *dirEntry) tree() *avltree.Tree {
+func (d *dir) tree() *avltree.Tree {
 	return d.value.(*avltree.Tree)
 }
 
-func (d *dirEntry) log(logger *log.Logger) {
+func (d *dir) log(logger *log.Logger) {
 	logger.Enter(d.Path(), func(l *log.Logger) {
 		//l.Println(d.tree.String())
 		add, del := d.MvCount()

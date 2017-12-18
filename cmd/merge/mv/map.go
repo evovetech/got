@@ -14,7 +14,7 @@ type Map struct {
 	AddDelMap `json:"-"`
 	Renames   []Rename
 	Projects  Projects
-	Root      file.DirEntry `json:"-"`
+	Root      file.Dir `json:"-"`
 	//Files     map[string]file.Dir
 	//Mvs map[string]
 }

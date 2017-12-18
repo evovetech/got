@@ -14,8 +14,8 @@ func (n *Node) Entry() Entry {
 	return n.Value.(Entry)
 }
 
-func (n *Node) Dir() (DirEntry, bool) {
-	dir, ok := n.Value.(DirEntry)
+func (n *Node) Dir() (Dir, bool) {
+	dir, ok := n.Value.(Dir)
 	return dir, ok
 }
 
@@ -24,7 +24,7 @@ func (n *Node) File() (File, bool) {
 	return f, ok
 }
 
-func (n *Node) append(parent DirEntry, newPath Path) (DirEntry, int) {
+func (n *Node) append(parent Dir, newPath Path) (Dir, int) {
 	dir, ok := n.Dir()
 	if !ok {
 		return nil, -1
@@ -45,7 +45,7 @@ func (n *Node) append(parent DirEntry, newPath Path) (DirEntry, int) {
 
 	// Add new path as base
 	oldDir := dir
-	dir = NewDirEntry(path[:i])
+	dir = NewDir(path[:i])
 	parent.add(dir)
 
 	// update old path, add to base
