@@ -29,6 +29,10 @@ func (p *Path) IsRoot() bool {
 	return p.Init()[0] == "."
 }
 
+func (p Path) Equals(o Path) bool {
+	return p.String() == o.String()
+}
+
 func (p Path) OsPath() string {
 	return ospath.Join(p...)
 }

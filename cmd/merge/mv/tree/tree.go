@@ -57,15 +57,15 @@ func (t *Tree) Get(path file.Path) (Entry, bool) {
 }
 
 func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, *File) {
-	var base *Tree
+	var parent *Tree
 	path, f := file.GetFile(fp, typ)
 	if path.IsRoot() {
-		base = t
+		parent = t
 	} else if tree := t.PutDir(path); tree != nil {
-		base = tree
+		parent = tree
 	}
-	if base != nil {
-		return path, base, base.AddFile(f)
+	if parent != nil {
+		return path, parent, parent.AddFile(f)
 	}
 	return path, nil, nil
 }
@@ -73,8 +73,6 @@ func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, *File) {
 func (t *Tree) PutDir(path file.Path) *Tree {
 	if path.IsRoot() {
 		return t
-	} else if cur, ok := t.Get(path); ok {
-		return cur.(*Dir).Tree()
 	} else if tree, ok := t.putCeil(path); ok {
 		return tree
 	} else if tree, ok := t.putFloor(path); ok {
@@ -114,6 +112,9 @@ func (t *Tree) putCeil(path file.Path) (*Tree, bool) {
 }
 
 func (t *Tree) putNode(path file.Path, node *Node) (*Tree, bool) {
+	if e := node.Entry(); path.Equals(e.Key()) {
+		return e.(*Dir).Tree(), true
+	}
 	tree, i := node.append(t, path)
 	if i == -1 {
 		return tree, tree != nil
