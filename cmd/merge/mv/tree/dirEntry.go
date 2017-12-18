@@ -40,35 +40,35 @@ func NewDirEntry(path file.Path) DirEntry {
 	return e
 }
 
-func (de *dirEntry) IsDir() bool {
+func (d *dirEntry) IsDir() bool {
 	return true
 }
 
-func (de *dirEntry) String() string {
+func (d *dirEntry) String() string {
 	var buf bytes.Buffer
 	l := log.NewBufLogger(&buf)
-	de.log(l)
+	d.log(l)
 	return buf.String()
 }
 
-func (de *dirEntry) tree() *avltree.Tree {
-	return de.value.(*avltree.Tree)
+func (d *dirEntry) tree() *avltree.Tree {
+	return d.value.(*avltree.Tree)
 }
 
-func (de *dirEntry) log(logger *log.Logger) {
-	logger.Enter(de.Key(), func(l *log.Logger) {
-		//l.Println(de.tree.String())
-		add, del := de.MvCount()
+func (d *dirEntry) log(logger *log.Logger) {
+	logger.Enter(d.Key(), func(l *log.Logger) {
+		//l.Println(d.tree.String())
+		add, del := d.MvCount()
 		if add > 0 {
 			l.Printf("A: %d\n", add)
 		}
 		if del > 0 {
 			l.Printf("D: %d\n", del)
 		}
-		//for _, f := range de.Files() {
+		//for _, f := range d.Files() {
 		//	l.Println(f.String())
 		//}
-		for _, dir := range de.Dirs() {
+		for _, dir := range d.Dirs() {
 			dir.log(l)
 		}
 	})

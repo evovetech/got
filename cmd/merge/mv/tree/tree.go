@@ -4,12 +4,8 @@ import (
 	"github.com/evovetech/got/cmd/merge/mv/file"
 )
 
-func (de *dirEntry) Path() file.Path {
-	return de.Key()
-}
-
-func (de *dirEntry) Get(path file.Path) (Entry, bool) {
-	if v, ok := de.tree().Get(path); ok {
+func (d *dirEntry) Get(path file.Path) (Entry, bool) {
+	if v, ok := d.tree().Get(path); ok {
 		if val, ok := v.(Entry); ok {
 			return val, true
 		}
@@ -17,43 +13,27 @@ func (de *dirEntry) Get(path file.Path) (Entry, bool) {
 	return nil, false
 }
 
-func (de *dirEntry) PutFile(fp string, typ file.Type) (DirEntry, FileEntry) {
+func (d *dirEntry) PutFile(fp string, typ file.Type) (DirEntry, FileEntry) {
 	path, f := file.GetFile(fp, typ)
-	if dir := de.PutDir(path); dir != nil {
+	if dir := d.PutDir(path); dir != nil {
 		return dir, dir.addFile(f)
 	}
 	return nil, nil
 }
 
-func (de *dirEntry) PutDir(path file.Path) DirEntry {
+func (d *dirEntry) PutDir(path file.Path) DirEntry {
 	if path.IsRoot() {
-		return de
-	} else if tree, ok := de.putFloor(path); ok {
+		return d
+	} else if tree, ok := d.putFloor(path); ok {
 		return tree
-	} else if tree, ok := de.putCeil(path); ok {
+	} else if tree, ok := d.putCeil(path); ok {
 		return tree
 	}
-	return de.addDir(path)
+	return d.addDir(path)
 }
 
-func (de *dirEntry) add(e Entry) {
-	de.tree().Put(e.Key(), e)
-}
-
-func (de *dirEntry) addFile(file file.File) FileEntry {
-	e := NewFileEntry(file)
-	de.add(e)
-	return e
-}
-
-func (de *dirEntry) addDir(path file.Path) DirEntry {
-	e := NewDirEntry(path)
-	de.add(e)
-	return e
-}
-
-func (de *dirEntry) Files() (files []FileEntry) {
-	for it := de.tree().Iterator(); it.Next(); {
+func (d *dirEntry) Files() (files []FileEntry) {
+	for it := d.tree().Iterator(); it.Next(); {
 		switch e := it.Value().(type) {
 		case FileEntry:
 			files = append(files, e)
@@ -62,8 +42,8 @@ func (de *dirEntry) Files() (files []FileEntry) {
 	return
 }
 
-func (de *dirEntry) Dirs() (dirs []DirEntry) {
-	for it := de.tree().Iterator(); it.Next(); {
+func (d *dirEntry) Dirs() (dirs []DirEntry) {
+	for it := d.tree().Iterator(); it.Next(); {
 		switch e := it.Value().(type) {
 		case DirEntry:
 			dirs = append(dirs, e)
@@ -72,8 +52,8 @@ func (de *dirEntry) Dirs() (dirs []DirEntry) {
 	return
 }
 
-func (de *dirEntry) MvCount() (add int, del int) {
-	for _, e := range de.Files() {
+func (d *dirEntry) MvCount() (add int, del int) {
+	for _, e := range d.Files() {
 		f := e.File()
 		switch {
 		case f.Type.HasFlag(file.Add):
@@ -82,7 +62,7 @@ func (de *dirEntry) MvCount() (add int, del int) {
 			del++
 		}
 	}
-	for _, dir := range de.Dirs() {
+	for _, dir := range d.Dirs() {
 		a, d := dir.MvCount()
 		add += a
 		del += d
@@ -90,25 +70,41 @@ func (de *dirEntry) MvCount() (add int, del int) {
 	return
 }
 
-func (de *dirEntry) putFloor(path file.Path) (DirEntry, bool) {
-	if floor, ok := de.tree().Floor(path); ok {
-		return de.putNode(path, node(floor))
+func (d *dirEntry) add(e Entry) {
+	d.tree().Put(e.Key(), e)
+}
+
+func (d *dirEntry) addFile(file file.File) FileEntry {
+	e := NewFileEntry(file)
+	d.add(e)
+	return e
+}
+
+func (d *dirEntry) addDir(path file.Path) DirEntry {
+	e := NewDirEntry(path)
+	d.add(e)
+	return e
+}
+
+func (d *dirEntry) putFloor(path file.Path) (DirEntry, bool) {
+	if floor, ok := d.tree().Floor(path); ok {
+		return d.putNode(path, node(floor))
 	}
 	return nil, false
 }
 
-func (de *dirEntry) putCeil(path file.Path) (DirEntry, bool) {
-	if ceil, ok := de.tree().Ceiling(path); ok {
-		return de.putNode(path, node(ceil))
+func (d *dirEntry) putCeil(path file.Path) (DirEntry, bool) {
+	if ceil, ok := d.tree().Ceiling(path); ok {
+		return d.putNode(path, node(ceil))
 	}
 	return nil, false
 }
 
-func (de *dirEntry) putNode(path file.Path, node *Node) (DirEntry, bool) {
+func (d *dirEntry) putNode(path file.Path, node *Node) (DirEntry, bool) {
 	if e := node.Entry(); path.Equals(e.Key()) {
 		return e.(DirEntry), true
 	}
-	tree, i := node.append(de, path)
+	tree, i := node.append(d, path)
 	if i == -1 {
 		return tree, tree != nil
 	}

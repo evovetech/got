@@ -1,7 +1,6 @@
 package mv
 
 import (
-	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
@@ -10,7 +9,6 @@ import (
 type FileMoves struct {
 	Renames []Rename
 	errs    []*Group
-	temp    file.StringNode
 }
 
 func GetFileMoves() (*FileMoves, bool) {
