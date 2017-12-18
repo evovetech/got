@@ -49,21 +49,27 @@ func (d *dir) Dirs() (dirs []Dir) {
 	return
 }
 
-func (d *dir) MvCount() (add int, del int) {
+type TypeCount map[Type]int
+
+func (c TypeCount) add(t Type, i int) {
+	c[t] = c[t] + i
+}
+
+func (c TypeCount) addAll(o TypeCount) {
+	for t, n := range o {
+		c.add(t, n)
+	}
+}
+
+func (d *dir) MvCount() TypeCount {
+	tc := make(TypeCount)
 	for _, f := range d.Files() {
-		switch {
-		case f.Type().HasFlag(Add):
-			add++
-		case f.Type().HasFlag(Del):
-			del++
-		}
+		tc.add(f.Type(), 1)
 	}
 	for _, dir := range d.Dirs() {
-		a, d := dir.MvCount()
-		add += a
-		del += d
+		tc.addAll(dir.MvCount())
 	}
-	return
+	return tc
 }
 
 func (d *dir) add(e Entry) {

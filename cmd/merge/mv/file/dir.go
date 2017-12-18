@@ -15,7 +15,7 @@ type Dir interface {
 	Files() []File
 	Dirs() []Dir
 
-	MvCount() (add int, del int)
+	MvCount() TypeCount
 
 	// private
 	tree() *avltree.Tree
@@ -56,12 +56,8 @@ func (d *dir) tree() *avltree.Tree {
 func (d *dir) log(logger *log.Logger) {
 	logger.Enter(d.Path(), func(l *log.Logger) {
 		//l.Println(d.tree.String())
-		add, del := d.MvCount()
-		if add > 0 {
-			l.Printf("A: %d\n", add)
-		}
-		if del > 0 {
-			l.Printf("D: %d\n", del)
+		for t, n := range d.MvCount() {
+			l.Printf("%s: %d\n", t.String(), n)
 		}
 		//for _, f := range d.Files() {
 		//	l.Println(f.String())
