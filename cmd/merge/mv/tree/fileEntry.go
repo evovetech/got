@@ -14,6 +14,10 @@ type fileEntry struct {
 	entry
 }
 
+func (e *fileEntry) IsDir() bool {
+	return false
+}
+
 func (e *fileEntry) File() file.File {
 	return e.value.(file.File)
 }

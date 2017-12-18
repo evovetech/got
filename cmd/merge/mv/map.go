@@ -151,7 +151,7 @@ func (m *Map) add(fp FilePath, typ Type) {
 	//}
 	//dir.Add(path, f)
 	//m.Root.AddFile(fp.actual, file.Type(typ))
-	m.Root.Tree().PutFile(fp.actual, file.Type(typ))
+	m.Root.PutFile(fp.actual, file.Type(typ))
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := m.getProject(src.Project)

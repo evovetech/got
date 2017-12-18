@@ -25,7 +25,7 @@ func (n *Node) File() (FileEntry, bool) {
 	return f, ok
 }
 
-func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
+func (n *Node) append(parent DirEntry, newPath file.Path) (DirEntry, int) {
 	dir, ok := n.Dir()
 	if !ok {
 		return nil, -1
@@ -38,20 +38,19 @@ func (n *Node) append(parent *Tree, newPath file.Path) (*Tree, int) {
 
 	i++
 	if i == len(path) {
-		return dir.Tree().PutDir(newPath[i:]), -1
+		return dir.PutDir(newPath[i:]), -1
 	}
 
 	// Remove node path
-	parent.Remove(path)
+	parent.tree().Remove(path)
 
 	// Add new path as base
 	oldDir := dir
 	dir = NewDirEntry(path[:i])
-	parent.Add(dir)
-	tree := dir.Tree()
+	parent.add(dir)
 
 	// update old path, add to base
 	oldDir.setKey(path[i:])
-	tree.Add(oldDir)
-	return tree, i
+	dir.add(oldDir)
+	return dir, i
 }

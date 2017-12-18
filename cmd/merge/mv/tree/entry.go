@@ -11,6 +11,7 @@ type Entry interface {
 	Key() file.Path
 	Value() interface{}
 	IsDir() bool
+	Path() file.Path
 
 	// private
 	setKey(key file.Path)
@@ -22,19 +23,18 @@ type entry struct {
 	value interface{}
 }
 
-func (v *entry) Key() file.Path {
-	return v.key.Init()
+func (e *entry) Key() file.Path {
+	return e.key.Init()
 }
 
-func (v *entry) Value() interface{} {
-	return v.value
+func (e *entry) Value() interface{} {
+	return e.value
 }
 
-func (v *entry) IsDir() bool {
-	_, ok := v.value.(*Tree)
-	return ok
+func (e *entry) Path() file.Path {
+	return e.Key()
 }
 
-func (v *entry) setKey(key file.Path) {
-	v.key = key
+func (e *entry) setKey(key file.Path) {
+	e.key = key
 }
