@@ -24,7 +24,7 @@ func (t *Tree) Get(path file.Path) (Entry, bool) {
 	return nil, false
 }
 
-func (t *Tree) PutFilePath(fp string, typ file.Type) (file.Path, *Tree, FileEntry) {
+func (t *Tree) PutFile(fp string, typ file.Type) (file.Path, *Tree, FileEntry) {
 	var parent *Tree
 	path, f := file.GetFile(fp, typ)
 	if path.IsRoot() {
