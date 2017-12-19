@@ -1,8 +1,8 @@
 package file
 
 import (
-	"github.com/evovetech/got/log"
 	"fmt"
+	"github.com/evovetech/got/log"
 )
 
 type Module interface {
@@ -36,8 +36,34 @@ func (m *module) log(l *log.Logger) {
 		//for t, n := range m.MvCount() {
 		//	l.Printf("%s: %d\n", t.String(), n)
 		//}
-		for _, f := range m.AllFiles() {
+		for _, f := range allDirFiles(m) {
 			f.log(l)
 		}
+		for _, mod := range m.Modules() {
+			mod.log(l)
+		}
 	})
+}
+
+//
+//func (m *module) allModules() (modules []*module) {
+//	for _, temp := range m.Modules() {
+//		mod := temp.(*module)
+//		modules = append(modules, mod)
+//		for _, child := range mod.allModules() {
+//			cp := *child
+//			cp.setPath(cp.Path().CopyWithPrefix(mod.Path()))
+//
+//		}
+//	}
+//}
+
+func allDirFiles(e Dir) (files []File) {
+	files = e.Files()
+	for _, d := range e.Dirs() {
+		for _, f := range allDirFiles(d) {
+			files = append(files, f.CopyWithParent(d.Path()))
+		}
+	}
+	return files
 }

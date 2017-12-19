@@ -1,8 +1,16 @@
 package file
 
 import (
-	"github.com/evovetech/got/log"
 	"github.com/emirpasic/gods/trees/avltree"
+	"github.com/evovetech/got/log"
+	"reflect"
+)
+
+var (
+	entryType  = reflect.TypeOf((*Entry)(nil)).Elem()
+	fileType   = reflect.TypeOf((*File)(nil)).Elem()
+	dirType    = reflect.TypeOf((*Dir)(nil)).Elem()
+	moduleType = reflect.TypeOf((*Module)(nil)).Elem()
 )
 
 func (d *dir) Get(path Path) (Entry, bool) {
@@ -63,39 +71,59 @@ func (d *dir) PutDir(path Path) Dir {
 	return d.insertDir(path)
 }
 
-func (d *dir) Files() (files []File) {
-	for it := d.tree().Iterator(); it.Next(); {
-		switch e := it.Value().(type) {
-		case File:
-			files = append(files, e)
-		}
-	}
-	return
+func trueFilter(t reflect.Type) bool {
+	return true
 }
 
-func (d *dir) Dirs() (dirs []Dir) {
+func (d *dir) filter(t reflect.Type, f EntryFilter) interface{} {
+	st := reflect.SliceOf(t)
+	slice := reflect.MakeSlice(st, 0, 0)
 	for it := d.tree().Iterator(); it.Next(); {
-		switch e := it.Value().(type) {
-		case Dir:
-			dirs = append(dirs, e)
+		v := reflect.ValueOf(it.Value())
+		typ := v.Type()
+		if typ.AssignableTo(t) && f(typ) {
+			slice = reflect.Append(slice, v)
 		}
 	}
-	return
+	return slice.Interface()
 }
 
-func (d *dir) Modules() (modules []Module) {
-	for it := d.tree().Iterator(); it.Next(); {
-		switch e := it.Value().(type) {
-		case Module:
-			modules = append(modules, e)
+func (d *dir) collect(t reflect.Type) interface{} {
+	return d.filter(t, trueFilter)
+}
+
+func (d *dir) Entries() []Entry {
+	return d.collect(entryType).([]Entry)
+}
+
+func (d *dir) Files() []File {
+	return d.collect(fileType).([]File)
+}
+
+func (d *dir) Dirs() []Dir {
+	return d.filter(dirType, func(t reflect.Type) bool {
+		return !t.AssignableTo(moduleType)
+	}).([]Dir)
+}
+
+func (d *dir) Modules() []Module {
+	return d.collect(moduleType).([]Module)
+}
+
+func (d *dir) AllEntries(filter EntryFilter) (entries []Entry) {
+	for _, e := range d.filter(entryType, filter).([]Entry) {
+		entries = append(entries, e)
+		if dir, ok := e.(Dir); ok {
+			entries = append(entries, dir.AllEntries(filter)...)
 		}
 	}
-	return
+	return entries
 }
 
 func (d *dir) AllFiles() []File {
 	files := d.Files()
 	for it := d.tree().Iterator(); it.Next(); {
+		reflect.TypeOf(it.Value())
 		switch dir := it.Value().(type) {
 		case Dir:
 			for _, f := range dir.AllFiles() {

@@ -2,10 +2,13 @@ package file
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/emirpasic/gods/trees/avltree"
 	"github.com/evovetech/got/log"
-	"fmt"
+	"reflect"
 )
+
+type EntryFilter func(reflect.Type) bool
 
 type Dir interface {
 	Entry
@@ -17,10 +20,13 @@ type Dir interface {
 	PutFile(fp string, typ Type) (Dir, File)
 	PutDir(path Path) Dir
 
+	Entries() []Entry
 	Files() []File
 	Dirs() []Dir
 	Modules() []Module
+
 	AllFiles() []File
+	AllEntries(filter EntryFilter) []Entry
 
 	MvCount() TypeCount
 
@@ -71,8 +77,11 @@ func (d *dir) log(l *log.Logger) {
 		//for _, f := range d.Files() {
 		//	l.Println(f.String())
 		//}
-		for _, dir := range d.Dirs() {
-			dir.log(l)
+		for _, e := range d.Entries() {
+			switch v := e.(type) {
+			case Dir, Module:
+				v.log(l)
+			}
 		}
 	})
 }
