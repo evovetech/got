@@ -2,7 +2,6 @@ package file
 
 import (
 	"github.com/emirpasic/gods/trees/avltree"
-	"github.com/evovetech/got/log"
 	"reflect"
 )
 
@@ -127,7 +126,7 @@ func (d *dir) AllFiles() []File {
 		switch dir := it.Value().(type) {
 		case Dir:
 			for _, f := range dir.AllFiles() {
-				files = append(files, f.CopyWithParent(dir.Path()))
+				files = append(files, f.CopyWithParent(dir.Key()))
 			}
 		}
 	}
@@ -175,26 +174,22 @@ func (d *dir) getModule(path Path) (mod Module) {
 	var parent Dir
 	var dir = d.PutDir(path)
 	if mod, ok = dir.(Module); !ok {
-		log.Std.Enter(d.Path(), func(l *log.Logger) {
-			l.Printf("path=%s, mod=%s", path, dir.Path())
-			if i := len(path) - len(dir.Path()); i > 0 {
-				parent, ok = d.FindDir(path[:i])
-			} else {
-				parent = d
+		if i := len(path) - len(dir.Key()); i > 0 {
+			parent, ok = d.FindDir(path[:i])
+		} else {
+			parent = d
+		}
+		if parent != nil {
+			if mod, ok = createModule(dir); ok {
+				parent.put(mod)
 			}
-			if parent != nil {
-				l.Printf("mod parent: %s", parent.Path())
-				if mod, ok = createModule(dir); ok {
-					parent.put(mod)
-				}
-			}
-		})
+		}
 	}
 	return
 }
 
 func (d *dir) put(e Entry) {
-	d.tree().Put(e.Path(), e)
+	d.tree().Put(e.Key(), e)
 }
 
 func (d *dir) putDir(path Path) Dir {
@@ -232,7 +227,7 @@ func (d *dir) Ceiling() *NodeFinder {
 }
 
 func (d *dir) putNode(path Path, node *Node) (Dir, bool) {
-	if e := node.Entry(); path.Equals(e.Path()) {
+	if e := node.Entry(); path.Equals(e.Key()) {
 		return e.(Dir), true
 	}
 	if tree, i := node.append(d, path); i > 0 {

@@ -34,7 +34,7 @@ func NewFileWithPath(path Path, typ Type) File {
 }
 
 func (f *file) Name() string {
-	return f.Path().Name()
+	return f.Key().Name()
 }
 
 func (f *file) Type() Type {
@@ -51,7 +51,7 @@ func (f *file) CopyWithParent(parent Path) File {
 }
 
 func (f file) String() string {
-	return fmt.Sprintf("%s: '%s'", f.Type(), f.Path().String())
+	return fmt.Sprintf("%s: '%s'", f.Type(), f.Key().String())
 }
 
 func (f file) MarshalJSON() ([]byte, error) {

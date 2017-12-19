@@ -7,7 +7,7 @@ import (
 
 type Entry interface {
 	fmt.Stringer
-	Path() Path
+	Key() Path
 	Value() interface{}
 	IsDir() bool
 	File() (File, bool)
@@ -27,7 +27,7 @@ func (e *entry) Value() interface{} {
 	return e.value
 }
 
-func (e *entry) Path() Path {
+func (e *entry) Key() Path {
 	return e.path.Init()
 }
 

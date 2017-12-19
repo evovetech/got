@@ -31,7 +31,7 @@ func (m *module) Src() Dir {
 }
 
 func (m *module) log(l *log.Logger) {
-	prefix := fmt.Sprintf("module<%s>", m.Path().String())
+	prefix := fmt.Sprintf("module<%s>", m.Key().String())
 	l.Enter(prefix, func(_ *log.Logger) {
 		//for t, n := range m.MvCount() {
 		//	l.Printf("%s: %d\n", t.String(), n)
@@ -62,7 +62,7 @@ func allDirFiles(e Dir) (files []File) {
 	files = e.Files()
 	for _, d := range e.Dirs() {
 		for _, f := range allDirFiles(d) {
-			files = append(files, f.CopyWithParent(d.Path()))
+			files = append(files, f.CopyWithParent(d.Key()))
 		}
 	}
 	return files

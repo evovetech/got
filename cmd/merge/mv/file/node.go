@@ -26,7 +26,7 @@ func (n *Node) File() (File, bool) {
 
 func (n *Node) match(path Path) (dir Dir, offset int, ok bool) {
 	if dir, ok = n.Dir(); ok {
-		dirPath := dir.Path()
+		dirPath := dir.Key()
 		if offset, ok = dirPath.IndexMatch(path); ok {
 			offset++
 			offset -= len(dirPath)
@@ -37,7 +37,7 @@ func (n *Node) match(path Path) (dir Dir, offset int, ok bool) {
 
 func (n *Node) find(child Path) (Entry, bool) {
 	if parent, offset, ok := n.match(child); ok {
-		if path := parent.Path(); offset == 0 {
+		if path := parent.Key(); offset == 0 {
 			i := len(path) + offset
 			if e, ok := parent.Find(path[:i]); ok {
 				return e, ok
@@ -53,7 +53,7 @@ func (n *Node) append(parent Dir, child Path) (Dir, int) {
 		return nil, -1
 	}
 
-	path := dir.Path()
+	path := dir.Key()
 	i := offset + len(path)
 	if offset == 0 {
 		return dir.PutDir(child[i:]), -1

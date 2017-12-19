@@ -68,7 +68,7 @@ func (d *dir) tree() *avltree.Tree {
 }
 
 func (d *dir) log(l *log.Logger) {
-	prefix := fmt.Sprintf("dir<%s>", d.Path().String())
+	prefix := fmt.Sprintf("dir<%s>", d.Key().String())
 	l.Enter(prefix, func(_ *log.Logger) {
 		//l.Println(d.tree.String())
 		//for t, n := range d.MvCount() {
