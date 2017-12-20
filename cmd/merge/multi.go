@@ -6,6 +6,7 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
+	"github.com/evovetech/got/log"
 )
 
 type multi Merger
@@ -59,6 +60,7 @@ func (m *multi) Run() (RunStep, error) {
 		return nil, err
 	}
 	reset := func(err error) (RunStep, error) {
+		log.Err.Println("aborting")
 		git.AbortMerge()
 		m.HeadRef.Checkout()
 		m.HeadRef.Reset().Hard()
@@ -66,37 +68,49 @@ func (m *multi) Run() (RunStep, error) {
 		theirs.Ref.Delete()
 		return nil, err
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Err.Println("recovering")
+			reset(nil)
+			panic(r)
+		}
+	}()
+	if err = m.run(ours, theirs); err != nil {
+		return reset(err)
+	}
+	return nil, nil
+}
+
+func (m *multi) run(ours *branchRef, theirs *branchRef) error {
+	var err error
 
 	// first merge
 	s1 := &multiStep{m, ours, theirs}
 	if err = s1.RunE(25); err != nil {
-		return reset(err)
+		return err
 	}
 
 	// second merge
 	var commit string
 	ours.Ref.Checkout()
 	if commit, err = s1.MergeCommitTree("", merge.THEIRS); err != nil {
-		return reset(err)
+		return err
 	}
 	if m.Strategy == merge.OURS {
 		if commit, err = s1.MergeCommitTree(commit, merge.OURS); err != nil {
-			return reset(err)
+			return err
 		}
 	}
 
 	// update branch ref
-	if err = util.RunAll(
+	return util.RunAll(
 		git.Command("update-ref", m.HeadRef.Info.RefName, commit).Run,
 		git.Command("reset", "--hard", "HEAD").Run,
 		git.RemoveUntracked,
 		m.HeadRef.Checkout,
 		ours.Ref.Delete,
 		theirs.Ref.Delete,
-	); err != nil {
-		return reset(err)
-	}
-	return nil, nil
+	)
 }
 
 func (m *multiStep) RunE(findRenames int) error {
