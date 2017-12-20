@@ -3,6 +3,9 @@ package file
 type Type uint32
 
 func (t Type) String() string {
+	if t == Mv {
+		return "MV"
+	}
 	var str string
 	if t.HasFlag(Rn) {
 		str += "R"
@@ -26,4 +29,5 @@ const (
 	Add Type = 1 << iota
 	Del
 	Rn
+	Mv = Add | Del | Rn
 )

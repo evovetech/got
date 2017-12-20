@@ -56,12 +56,12 @@ func (m *Map) Run() ([]*Group, []Rename) {
 		d1, f1 := dir.PutFile(pair.From.actual, file.Del|file.Rn)
 		d2, f2 := dir.PutFile(pair.To.actual, file.Add|file.Rn)
 		//d2 := dir.Add(p2, f2)
+		if f1.Name() != f2.Name() {
+			// TODO:
+			log.Printf("name change: %s -> %s", f1.Name(), f2.Name())
+			continue
+		}
 		if d1 != d2 {
-			if f1.Name() != f2.Name() {
-				// TODO:
-				log.Printf("name change: %s -> %s", f1.Name(), f2.Name())
-				break
-			}
 			// changed directories
 			var root file.Dir
 			//root := dir
@@ -72,7 +72,9 @@ func (m *Map) Run() ([]*Group, []Rename) {
 			//	}
 			//}
 			if root == nil {
-				log.Printf("rename: %s", dir.String())
+				log.Std.Enter("rename", func(l *log.Logger) {
+					l.Print(dir.String())
+				})
 				continue
 			}
 			v := struct {

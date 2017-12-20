@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"github.com/evovetech/got/log"
 )
 
@@ -30,19 +29,15 @@ func (m *module) Src() Dir {
 	return m.PutDir(path)
 }
 
+func (m *module) Copy() Entry {
+	if d, ok := m.dir.Copy().(*dir); ok {
+		return &module{d}
+	}
+	return nil
+}
+
 func (m *module) log(l *log.Logger) {
-	prefix := fmt.Sprintf("module<%s>", m.Key().String())
-	l.Enter(prefix, func(_ *log.Logger) {
-		//for t, n := range m.MvCount() {
-		//	l.Printf("%s: %d\n", t.String(), n)
-		//}
-		for _, f := range allDirFiles(m) {
-			f.log(l)
-		}
-		for _, mod := range m.Modules() {
-			mod.log(l)
-		}
-	})
+	logDir(l, "module", m)
 }
 
 //
@@ -57,13 +52,3 @@ func (m *module) log(l *log.Logger) {
 //		}
 //	}
 //}
-
-func allDirFiles(e Dir) (files []File) {
-	files = e.Files()
-	for _, d := range e.Dirs() {
-		for _, f := range allDirFiles(d) {
-			files = append(files, f.CopyWithParent(d.Key()))
-		}
-	}
-	return files
-}

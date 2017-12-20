@@ -110,14 +110,33 @@ func (d *dir) Modules() []Module {
 	return d.collect(moduleType).([]Module)
 }
 
-func (d *dir) AllEntries(filter EntryFilter) (entries []Entry) {
-	for _, e := range d.filter(entryType, filter).([]Entry) {
-		entries = append(entries, e)
-		if dir, ok := e.(Dir); ok {
-			entries = append(entries, dir.AllEntries(filter)...)
+func (d *dir) AllDirs() (dirs []Dir) {
+	for _, temp := range d.collect(dirType).([]Dir) {
+		parent := NewDir(temp.Path())
+		if _, ok := temp.(Module); ok {
+			parent, _ = createModule(parent)
+		}
+		for _, f := range temp.Files() {
+			parent.put(f.Copy())
+		}
+		dirs = append(dirs, parent)
+		for _, dir := range temp.AllDirs() {
+			path := dir.Path().CopyWithParent(parent.Path())
+			dir.setPath(path)
+			dirs = append(dirs, dir)
 		}
 	}
-	return entries
+	return
+}
+
+func (d *dir) AllEntries() (entries []Entry) {
+	for _, f := range d.Files() {
+		entries = append(entries, f)
+	}
+	for _, dir := range d.AllDirs() {
+		entries = append(entries, dir)
+	}
+	return
 }
 
 func (d *dir) AllFiles() (files []File) {

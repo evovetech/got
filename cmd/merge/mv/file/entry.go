@@ -9,9 +9,11 @@ type Entry interface {
 	fmt.Stringer
 	Key() Path
 	Value() interface{}
+	Path() Path
 	IsDir() bool
 	File() (File, bool)
 	Dir() (Dir, bool)
+	Copy() Entry
 
 	// private
 	setPath(path Path)
@@ -28,6 +30,10 @@ func (e *entry) Value() interface{} {
 }
 
 func (e *entry) Key() Path {
+	return e.Path()
+}
+
+func (e *entry) Path() Path {
 	return e.path.Init()
 }
 
