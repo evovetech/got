@@ -126,8 +126,8 @@ func (d *dir) AllFiles() (files []File) {
 		case File:
 			files = append(files, e)
 		case Dir:
-			for _, f := range dir.AllFiles() {
-				files = append(files, f.CopyWithParent(dir.Key()))
+			for _, f := range e.AllFiles() {
+				files = append(files, f.CopyWithParent(e.Key()))
 			}
 		}
 	}
