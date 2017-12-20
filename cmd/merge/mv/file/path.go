@@ -33,22 +33,30 @@ func GetPath(file string) Path {
 	return Path(strings.Split(clean, "/"))
 }
 
-func JoinPaths(paths ...Path) Path {
-	var length int
-	for _, p := range paths {
+func JoinPaths(path Path, paths ...Path) Path {
+	sizeOf := func(p Path) int {
 		if !p.IsRoot() {
-			length += len(p)
+			return len(p)
 		}
+		return 0
+	}
+	size := sizeOf(path)
+	for _, p := range paths {
+		size += sizeOf(p)
 	}
 
 	var m int
-	var join = make(Path, length)
-	for _, p := range paths {
+	var join = make(Path, size)
+	add := func(p Path) {
 		if !p.IsRoot() {
 			n := m + len(p)
 			copy(join[m:n], p)
 			m = n
 		}
+	}
+	add(path)
+	for _, p := range paths {
+		add(p)
 	}
 	return join
 }
@@ -113,8 +121,7 @@ func (p Path) IsDir() bool {
 }
 
 func (p Path) Append(paths ...Path) Path {
-	paths = append([]Path{p}, paths...)
-	return JoinPaths(paths...)
+	return JoinPaths(p, paths...)
 }
 
 func (p Path) CopyWithParent(parent Path) Path {

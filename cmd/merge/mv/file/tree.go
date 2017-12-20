@@ -75,9 +75,10 @@ func trueFilter(_ reflect.Type) bool {
 }
 
 func (d *dir) filter(t reflect.Type, f EntryFilter) interface{} {
+	tree := d.tree()
 	st := reflect.SliceOf(t)
-	slice := reflect.MakeSlice(st, 0, 0)
-	for it := d.tree().Iterator(); it.Next(); {
+	slice := reflect.MakeSlice(st, 0, tree.Size())
+	for it := tree.Iterator(); it.Next(); {
 		v := reflect.ValueOf(it.Value())
 		typ := v.Type()
 		if typ.AssignableTo(t) && f(typ) {
@@ -119,18 +120,18 @@ func (d *dir) AllEntries(filter EntryFilter) (entries []Entry) {
 	return entries
 }
 
-func (d *dir) AllFiles() []File {
-	files := d.Files()
+func (d *dir) AllFiles() (files []File) {
 	for it := d.tree().Iterator(); it.Next(); {
-		reflect.TypeOf(it.Value())
-		switch dir := it.Value().(type) {
+		switch e := it.Value().(type) {
+		case File:
+			files = append(files, e)
 		case Dir:
 			for _, f := range dir.AllFiles() {
 				files = append(files, f.CopyWithParent(dir.Key()))
 			}
 		}
 	}
-	return files
+	return
 }
 
 func (d *dir) MvCount() TypeCount {
