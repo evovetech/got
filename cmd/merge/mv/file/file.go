@@ -46,7 +46,7 @@ func (f *file) IsDir() bool {
 }
 
 func (f *file) CopyWithParent(parent Path) File {
-	path := f.path.CopyWithPrefix(parent)
+	path := f.Key().CopyWithPrefix(parent)
 	return NewFileWithPath(path, f.Type())
 }
 

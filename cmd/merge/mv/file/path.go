@@ -33,6 +33,26 @@ func GetPath(file string) Path {
 	return Path(strings.Split(clean, "/"))
 }
 
+func JoinPaths(paths ...Path) Path {
+	var length int
+	for _, p := range paths {
+		if !p.IsRoot() {
+			length += len(p)
+		}
+	}
+
+	var m int
+	var join = make(Path, length)
+	for _, p := range paths {
+		if !p.IsRoot() {
+			n := m + len(p)
+			copy(join[m:n], p)
+			m = n
+		}
+	}
+	return join
+}
+
 func (p *Path) Init() Path {
 	var path Path
 	if path = *p; len(path) == 0 {
@@ -47,7 +67,12 @@ func (p *Path) IsRoot() bool {
 }
 
 func (p Path) Copy() Path {
-	n := make(Path, len(p))
+	var l int
+	if l = len(p); l == 0 {
+		return RootPath()
+	}
+
+	n := make(Path, l)
 	copy(n, p)
 	return n
 }
@@ -87,19 +112,13 @@ func (p Path) IsDir() bool {
 	return false
 }
 
+func (p Path) Append(paths ...Path) Path {
+	paths = append([]Path{p}, paths...)
+	return JoinPaths(paths...)
+}
+
 func (p Path) CopyWithPrefix(prefix Path) Path {
-	switch {
-	case p.IsRoot():
-		return prefix
-	case prefix.IsRoot():
-		return p
-	}
-	m := len(prefix)
-	n := m + len(p)
-	c := make(Path, n)
-	copy(c, prefix)
-	copy(c[m:n], p)
-	return c
+	return JoinPaths(prefix, p)
 }
 
 func (p Path) IndexOf(segment string) (int, bool) {

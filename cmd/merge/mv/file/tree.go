@@ -70,7 +70,7 @@ func (d *dir) PutDir(path Path) Dir {
 	return d.insertDir(path)
 }
 
-func trueFilter(t reflect.Type) bool {
+func trueFilter(_ reflect.Type) bool {
 	return true
 }
 

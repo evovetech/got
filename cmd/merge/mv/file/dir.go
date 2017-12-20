@@ -71,9 +71,9 @@ func (d *dir) log(l *log.Logger) {
 	prefix := fmt.Sprintf("dir<%s>", d.Key().String())
 	l.Enter(prefix, func(_ *log.Logger) {
 		//l.Println(d.tree.String())
-		//for t, n := range d.MvCount() {
-		//	l.Printf("%s: %d\n", t.String(), n)
-		//}
+		for t, n := range d.MvCount() {
+			l.Printf("%s: %d\n", t.String(), n)
+		}
 		//for _, f := range d.Files() {
 		//	l.Println(f.String())
 		//}
