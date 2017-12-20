@@ -5,8 +5,8 @@ import (
 
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
-	"github.com/evovetech/got/util"
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 )
 
 type multi Merger

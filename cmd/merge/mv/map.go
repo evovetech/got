@@ -52,31 +52,42 @@ func (m *Map) Run() ([]*Group, []Rename) {
 		}
 	}
 	for _, pair := range m.Renames {
-		//dir := file.NewDir()
-		//p1, f1 := file.GetFile(pair.From.actual, file.Del|file.Rn)
-		//p2, f2 := file.GetFile(pair.To.actual, file.Add|file.Rn)
-		//d1 := dir.Add(p1, f1)
+		dir := file.NewRoot()
+		d1, f1 := dir.PutFile(pair.From.actual, file.Del|file.Rn)
+		d2, f2 := dir.PutFile(pair.To.actual, file.Add|file.Rn)
 		//d2 := dir.Add(p2, f2)
-		//if d1 != d2 {
-		//	if f1.Name != f2.Name {
-		//		// TODO:
-		//		break
-		//	}
-		//	// changed directories
-		//	root := dir.Dirs()[0]
-		//	v := struct {
-		//		Root file.Path
-		//		From file.Path
-		//		To   file.Path
-		//		File string
-		//	}{
-		//		Root: root.Name(),
-		//		From: d1.Name(),
-		//		To:   d2.Name(),
-		//		File: f1.Name,
-		//	}
-		//	log.Printf("rename: %s", util.String(v))
-		//}
+		if d1 != d2 {
+			if f1.Name() != f2.Name() {
+				// TODO:
+				log.Printf("name change: %s -> %s", f1.Name(), f2.Name())
+				break
+			}
+			// changed directories
+			var root file.Dir
+			//root := dir
+			//for entries := root.Entries(); len(entries) == 1; entries = root.Entries() {
+			//	switch v := entries[0].(type) {
+			//	case file.Dir:
+			//		root = v
+			//	}
+			//}
+			if root == nil {
+				log.Printf("rename: %s", dir.String())
+				continue
+			}
+			v := struct {
+				Root file.Path
+				From file.Path
+				To   file.Path
+				File string
+			}{
+				Root: root.Key(),
+				From: d1.Key(),
+				To:   d2.Key(),
+				File: f1.Name(),
+			}
+			log.Printf("rename: %s", util.String(v))
+		}
 		m.add(pair.From, Del|Rn)
 		m.add(pair.To, Add|Rn)
 	}

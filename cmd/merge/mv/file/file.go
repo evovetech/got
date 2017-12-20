@@ -10,6 +10,7 @@ type File interface {
 	Entry
 	Name() string
 	Type() Type
+	Copy() File
 	CopyWithParent(parent Path) File
 }
 
@@ -43,6 +44,10 @@ func (f *file) Type() Type {
 
 func (f *file) IsDir() bool {
 	return false
+}
+
+func (f *file) Copy() File {
+	return NewFileWithPath(f.path.Copy(), f.Type())
 }
 
 func (f *file) CopyWithParent(parent Path) File {

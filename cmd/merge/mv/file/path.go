@@ -33,32 +33,15 @@ func GetPath(file string) Path {
 	return Path(strings.Split(clean, "/"))
 }
 
-func JoinPaths(path Path, paths ...Path) Path {
-	sizeOf := func(p Path) int {
-		if !p.IsRoot() {
-			return len(p)
-		}
-		return 0
+func JoinPaths(paths ...Path) Path {
+	switch len(paths) {
+	case 0:
+		return RootPath()
+	case 1:
+		return paths[0].Copy()
+	default:
+		return paths[0].Append(paths[1:]...)
 	}
-	size := sizeOf(path)
-	for _, p := range paths {
-		size += sizeOf(p)
-	}
-
-	var m int
-	var join = make(Path, size)
-	add := func(p Path) {
-		if !p.IsRoot() {
-			n := m + len(p)
-			copy(join[m:n], p)
-			m = n
-		}
-	}
-	add(path)
-	for _, p := range paths {
-		add(p)
-	}
-	return join
 }
 
 func (p *Path) Init() Path {
@@ -121,7 +104,20 @@ func (p Path) IsDir() bool {
 }
 
 func (p Path) Append(paths ...Path) Path {
-	return JoinPaths(p, paths...)
+	var m int
+	var join = make(Path, p.SizeOf(paths...))
+	add := func(path Path) {
+		if s := path.Size(); s > 0 {
+			n := m + s
+			copy(join[m:n], path)
+			m = n
+		}
+	}
+	add(p)
+	for _, path := range paths {
+		add(path)
+	}
+	return join
 }
 
 func (p Path) CopyWithParent(parent Path) Path {
@@ -139,6 +135,21 @@ func (p Path) IndexOf(segment string) (int, bool) {
 
 func (p Path) SrcIndex() (int, bool) {
 	return p.IndexOf(SRC)
+}
+
+func (p Path) Size() int {
+	if p.IsRoot() {
+		return 0
+	}
+	return len(p)
+}
+
+func (p Path) SizeOf(paths ...Path) int {
+	size := p.Size()
+	for _, path := range paths {
+		size += path.Size()
+	}
+	return size
 }
 
 func (p Path) String() string {
