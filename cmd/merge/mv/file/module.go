@@ -52,7 +52,7 @@ func (m *module) log(l *log.Logger) {
 //		modules = append(modules, mod)
 //		for _, child := range mod.allModules() {
 //			cp := *child
-//			cp.setPath(cp.Path().CopyWithPrefix(mod.Path()))
+//			cp.setPath(cp.Path().CopyWithParent(mod.Path()))
 //
 //		}
 //	}

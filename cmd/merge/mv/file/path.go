@@ -117,8 +117,8 @@ func (p Path) Append(paths ...Path) Path {
 	return JoinPaths(paths...)
 }
 
-func (p Path) CopyWithPrefix(prefix Path) Path {
-	return JoinPaths(prefix, p)
+func (p Path) CopyWithParent(parent Path) Path {
+	return JoinPaths(parent, p)
 }
 
 func (p Path) IndexOf(segment string) (int, bool) {
