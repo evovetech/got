@@ -41,7 +41,7 @@ func (m movePart) Path() Path {
 	// unique path segment
 	from := strings.Join(f, "|")
 	to := strings.Join(m.to.Val(), "|")
-	path := fmt.Sprintf("{|%s|->|%s|}", from, to)
+	path := fmt.Sprintf("(%s)->(%s)", from, to)
 	return []string{path}
 }
 
