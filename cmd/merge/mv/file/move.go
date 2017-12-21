@@ -1,15 +1,29 @@
 package file
 
 import (
-	"bytes"
+	"fmt"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"strings"
 )
 
-type Move []MovePart
+type Move interface {
+	fmt.Stringer
+	Key() Path
+	Value() interface{}
+	Path() Path
+	IsDir() bool
 
-func (mv *Move) Append(parts ...MovePart) (added bool) {
+	// private
+	log(l *log.Logger)
+}
+
+type move struct {
+}
+
+type MovePath []MovePart
+
+func (mv *MovePath) Append(parts ...MovePart) (added bool) {
 	for _, m := range parts {
 		if m.Max() > 0 {
 			added = true
@@ -19,7 +33,19 @@ func (mv *Move) Append(parts ...MovePart) (added bool) {
 	return
 }
 
-func (mv Move) String() string {
+func (mv MovePath) Path() Path {
+	var paths []Path
+	for _, part := range mv {
+		paths = append(paths, part.Path())
+	}
+	return JoinPaths(paths...)
+}
+
+func (mv MovePath) String() string {
+	return mv.Path().String()
+}
+
+func (mv MovePath) log(l *log.Logger) {
 	var result [5][]string
 	for _, m := range mv {
 		var p [5]string
@@ -43,15 +69,12 @@ func (mv Move) String() string {
 			result[i] = append(result[i], str)
 		}
 	}
-	var buf bytes.Buffer
-	l := log.NewBufLogger(&buf)
 	for _, r := range result {
 		l.Println(strings.Join(r, "|"))
 	}
-	return buf.String()
 }
 
-func (mv Move) get() (Move, bool) {
+func (mv MovePath) get() (MovePath, bool) {
 	return mv, len(mv) > 0
 }
 

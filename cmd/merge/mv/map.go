@@ -15,8 +15,7 @@ type Map struct {
 	Renames   []Rename
 	Projects  Projects
 	Root      file.Dir `json:"-"`
-	//Files     map[string]file.Dir
-	//Mvs map[string]
+	Mvs       file.Dir `json:"-"`
 }
 
 var reAdd = regexp.MustCompile("^A\\s+(.*)$")
@@ -30,6 +29,7 @@ func NewMap() *Map {
 		Projects:  make(Projects),
 		//Files:     make(map[string]file.Dir),
 		Root: file.NewRoot(),
+		Mvs:  file.NewRoot(),
 	}
 	return m
 }
@@ -52,12 +52,13 @@ func (m *Map) Run() ([]*Group, []Rename) {
 		}
 	}
 	for _, pair := range m.Renames {
-		parser := file.NewMove(
+		move := file.NewMove(
 			file.GetPath(pair.From.actual),
 			file.GetPath(pair.To.actual),
 		)
-		if mp, ok := parser.Parse(); ok {
-			log.Println(mp.String())
+		if mvPath, ok := move.Parse(); ok {
+			log.Println(mvPath.String())
+			m.Mvs.PutFile(mvPath.String(), file.Mv)
 		}
 		//dir := file.NewRoot()
 		//d1, f1 := dir.PutFile(pair.From.actual, file.Del|file.Rn)
@@ -132,9 +133,11 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
-	for _, mod := range m.Root.AllModules() {
-		log.Print(mod.String())
-	}
+
+	log.Println(m.Mvs.String())
+	//for _, mod := range m.Root.AllModules() {
+	//	log.Print(mod.String())
+	//}
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {

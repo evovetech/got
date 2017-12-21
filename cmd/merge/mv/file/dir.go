@@ -86,6 +86,17 @@ func (d *dir) tree() *avltree.Tree {
 
 func logDir(l *log.Logger, name string, d Dir) {
 	prefix := fmt.Sprintf("%s<%s>", name, d.Key().String())
+	l.Enter(prefix, func(_ *log.Logger) {
+		for t, n := range d.MvCount() {
+			l.Printf("%s: %d\n", t.String(), n)
+		}
+		for _, e := range d.Entries() {
+			e.log(l)
+		}
+	})
+}
+func logDir2(l *log.Logger, name string, d Dir) {
+	prefix := fmt.Sprintf("%s<%s>", name, d.Key().String())
 	if files := d.Files(); len(files) > 0 {
 		l.Enter(prefix, func(_ *log.Logger) {
 			for t, n := range d.MvCount() {

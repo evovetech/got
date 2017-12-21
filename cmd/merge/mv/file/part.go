@@ -6,6 +6,7 @@ import (
 )
 
 type Part interface {
+	fmt.Stringer
 	From() SplitPath
 	To() SplitPath
 	Max() int

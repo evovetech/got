@@ -3,7 +3,7 @@ package file
 type MoveParser struct {
 	from   Path
 	to     Path
-	result Move
+	result MovePath
 }
 
 func NewMove(from Path, to Path) *MoveParser {
@@ -13,7 +13,7 @@ func NewMove(from Path, to Path) *MoveParser {
 	}
 }
 
-func (p *MoveParser) Parse() (Move, bool) {
+func (p *MoveParser) Parse() (MovePath, bool) {
 	for it := p.iterator(); it.hasNext(); {
 		p.result.Append(it.get()...)
 	}
@@ -43,8 +43,8 @@ func (it *moveIterator) matchUnequal() (MovePart, bool) {
 	return it.cur.matchUnequal()
 }
 
-func (it *moveIterator) get() (parts Move) {
-	done := func() Move {
+func (it *moveIterator) get() (parts MovePath) {
+	done := func() MovePath {
 		if last := it.cur; last.Max() > 0 {
 			parts.Append(NewMovePart(
 				last.From(),
