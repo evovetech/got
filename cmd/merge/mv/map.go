@@ -52,7 +52,7 @@ func (m *Map) Run() ([]*Group, []Rename) {
 		}
 	}
 	for _, pair := range m.Renames {
-		parser := file.NewMoveParser(
+		parser := file.NewMove(
 			file.GetPath(pair.From.actual),
 			file.GetPath(pair.To.actual),
 		)
