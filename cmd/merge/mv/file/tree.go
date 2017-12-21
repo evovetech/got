@@ -110,25 +110,6 @@ func (d *dir) Modules() []Module {
 	return d.collect(moduleType).([]Module)
 }
 
-func (d *dir) AllDirs() (dirs []Dir) {
-	for _, temp := range d.collect(dirType).([]Dir) {
-		parent := NewDir(temp.Path())
-		if _, ok := temp.(Module); ok {
-			parent, _ = createModule(parent)
-		}
-		for _, f := range temp.Files() {
-			parent.put(f.Copy())
-		}
-		dirs = append(dirs, parent)
-		for _, dir := range temp.AllDirs() {
-			path := dir.Path().CopyWithParent(parent.Path())
-			dir.setPath(path)
-			dirs = append(dirs, dir)
-		}
-	}
-	return
-}
-
 func (d *dir) AllEntries() (entries []Entry) {
 	for _, f := range d.Files() {
 		entries = append(entries, f)
@@ -148,6 +129,34 @@ func (d *dir) AllFiles() (files []File) {
 			for _, f := range e.AllFiles() {
 				files = append(files, f.CopyWithParent(e.Key()))
 			}
+		}
+	}
+	return
+}
+
+func (d *dir) AllDirs() (dirs []Dir) {
+	for _, temp := range d.collect(dirType).([]Dir) {
+		parent := NewDir(temp.Path())
+		if _, ok := temp.(Module); ok {
+			parent, _ = createModule(parent)
+		}
+		for _, f := range temp.Files() {
+			parent.put(f.Copy())
+		}
+		dirs = append(dirs, parent)
+		for _, dir := range temp.AllDirs() {
+			path := dir.Path().CopyWithParent(parent.Path())
+			dir.setPath(path)
+			dirs = append(dirs, dir)
+		}
+	}
+	return
+}
+
+func (d *dir) AllModules() (modules []Module) {
+	for _, dir := range d.AllDirs() {
+		if m, ok := dir.(Module); ok {
+			modules = append(modules, m)
 		}
 	}
 	return

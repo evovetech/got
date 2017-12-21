@@ -36,6 +36,10 @@ func (m *module) Copy() Entry {
 	return nil
 }
 
+func (m *module) String() string {
+	return DirString(m)
+}
+
 func (m *module) log(l *log.Logger) {
 	logDir(l, "module", m)
 }

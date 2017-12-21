@@ -25,9 +25,10 @@ type Dir interface {
 	Dirs() []Dir
 	Modules() []Module
 
+	AllEntries() []Entry
 	AllFiles() []File
 	AllDirs() []Dir
-	AllEntries() []Entry
+	AllModules() []Module
 
 	MvCount() TypeCount
 
@@ -53,6 +54,13 @@ func NewDir(path Path) Dir {
 	return e
 }
 
+func DirString(d Dir) string {
+	var buf bytes.Buffer
+	l := log.NewBufLogger(&buf)
+	d.log(l)
+	return buf.String()
+}
+
 func (d *dir) Copy() Entry {
 	if d == nil {
 		return nil
@@ -69,10 +77,7 @@ func (d *dir) IsDir() bool {
 }
 
 func (d *dir) String() string {
-	var buf bytes.Buffer
-	l := log.NewBufLogger(&buf)
-	d.log(l)
-	return buf.String()
+	return DirString(d)
 }
 
 func (d *dir) tree() *avltree.Tree {
@@ -80,8 +85,8 @@ func (d *dir) tree() *avltree.Tree {
 }
 
 func logDir(l *log.Logger, name string, d Dir) {
+	prefix := fmt.Sprintf("%s<%s>", name, d.Key().String())
 	if files := d.Files(); len(files) > 0 {
-		prefix := fmt.Sprintf("%s<%s>", name, d.Key().String())
 		l.Enter(prefix, func(_ *log.Logger) {
 			for t, n := range d.MvCount() {
 				l.Printf("%s: %d\n", t.String(), n)
@@ -90,6 +95,8 @@ func logDir(l *log.Logger, name string, d Dir) {
 				f.log(l)
 			}
 		})
+	} else {
+		l.Println(prefix)
 	}
 	for _, e := range d.AllDirs() {
 		e.log(l)

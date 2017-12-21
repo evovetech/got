@@ -132,7 +132,9 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
-	//log.Println(m.Root.String())
+	for _, mod := range m.Root.AllModules() {
+		log.Print(mod.String())
+	}
 	pairs := m.Renames
 	errs, p := m.AddDelMap.parse()
 	if len(p) > 0 {
