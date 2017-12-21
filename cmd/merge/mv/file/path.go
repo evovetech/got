@@ -137,6 +137,10 @@ func (p Path) SrcIndex() (int, bool) {
 	return p.IndexOf(SRC)
 }
 
+func (p Path) Len() int {
+	return p.Size()
+}
+
 func (p Path) Size() int {
 	if p.IsRoot() {
 		return 0
