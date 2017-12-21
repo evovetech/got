@@ -140,6 +140,8 @@ type Part interface {
 	matchUnequal() (MovePart, bool)
 }
 
+type partMatch func() (MovePart, bool)
+
 type part struct {
 	from SplitPath
 	to   SplitPath
@@ -201,13 +203,11 @@ func (p Path) nextMatch(o Path) (int, int, bool) {
 		oMax := util.MinInt(pi+1, max)
 		oi := oMax - 1
 		for i := 0; i < pi; i++ {
-			//log.Printf("trying i=%d, oi=%d", i, oi)
 			if p[i] == o[oi] {
 				return i, oi, true
 			}
 		}
 		for oi := 0; oi < oMax; oi++ {
-			//log.Printf("trying pi=%d, oi=%d", pi, oi)
 			if p[pi] == o[oi] {
 				return pi, oi, true
 			}
@@ -306,8 +306,16 @@ func (it *moveIterator) hasNext() bool {
 	return !it.done
 }
 
+func (it *moveIterator) matchEqual() (MovePart, bool) {
+	return it.cur.matchEqual()
+}
+
+func (it *moveIterator) matchUnequal() (MovePart, bool) {
+	return it.cur.matchUnequal()
+}
+
 func (it *moveIterator) get() (parts MoveParts) {
-	done := func() {
+	done := func() MoveParts {
 		if last := it.cur; last.Max() > 0 {
 			parts.Append(NewMovePart(
 				last.From(),
@@ -317,19 +325,14 @@ func (it *moveIterator) get() (parts MoveParts) {
 		}
 		it.cur = nil
 		it.done = true
+		return parts
 	}
-
-	if m, ok := it.cur.matchEqual(); ok && parts.Append(m) {
-		it.cur = m.next()
-	} else {
-		done()
-		return
-	}
-
-	if m, ok := it.cur.matchUnequal(); ok && parts.Append(m) {
-		it.cur = m.next()
-	} else {
-		done()
+	for _, f := range []partMatch{it.matchEqual, it.matchUnequal} {
+		if m, ok := f(); ok && parts.Append(m) {
+			it.cur = m.next()
+		} else {
+			return done()
+		}
 	}
 	return
 }
