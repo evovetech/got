@@ -11,21 +11,6 @@ type Iterator interface {
 	Entry() Entry
 }
 
-type emptyIterator uint8
-
-const noEntries = emptyIterator(0)
-
-func (emptyIterator) Prev() bool         { return false }
-func (emptyIterator) End()               {}
-func (emptyIterator) Last() bool         { return false }
-func (emptyIterator) Next() bool         { return false }
-func (emptyIterator) Value() interface{} { return nil }
-func (emptyIterator) Key() interface{}   { return nil }
-func (emptyIterator) Begin()             {}
-func (emptyIterator) First() bool        { return false }
-func (emptyIterator) Path() Path         { return nil }
-func (emptyIterator) Entry() Entry       { return nil }
-
 type iterator struct {
 	containers.ReverseIteratorWithKey
 }
@@ -47,3 +32,18 @@ func (it *iterator) Entry() Entry {
 	}
 	return nil
 }
+
+type emptyIterator uint8
+
+const noEntries = emptyIterator(0)
+
+func (emptyIterator) Prev() bool         { return false }
+func (emptyIterator) End()               {}
+func (emptyIterator) Last() bool         { return false }
+func (emptyIterator) Next() bool         { return false }
+func (emptyIterator) Value() interface{} { return nil }
+func (emptyIterator) Key() interface{}   { return nil }
+func (emptyIterator) Begin()             {}
+func (emptyIterator) First() bool        { return false }
+func (emptyIterator) Path() Path         { return nil }
+func (emptyIterator) Entry() Entry       { return nil }
