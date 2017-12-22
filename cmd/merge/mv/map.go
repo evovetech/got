@@ -60,46 +60,6 @@ func (m *Map) Run() ([]*Group, []Rename) {
 			log.Println(mvPath.String())
 			m.Mvs.PutFile(mvPath.String(), file.Mv)
 		}
-		//dir := file.NewRoot()
-		//d1, f1 := dir.PutFile(pair.From.actual, file.Del|file.Rn)
-		//d2, f2 := dir.PutFile(pair.To.actual, file.Add|file.Rn)
-		////d2 := dir.Add(p2, f2)
-		//if f1.Name() != f2.Name() {
-		//	// TODO:
-		//	log.Printf("name change: %s -> %s", f1.Name(), f2.Name())
-		//	continue
-		//}
-		//if d1 != d2 {
-		//	// changed directories
-		//	var root file.Dir
-		//	//root := dir
-		//	//for entries := root.Entries(); len(entries) == 1; entries = root.Entries() {
-		//	//	switch v := entries[0].(type) {
-		//	//	case file.Dir:
-		//	//		root = v
-		//	//	}
-		//	//}
-		//	if root == nil {
-		//		log.Std.Enter("rename", func(l *log.Logger) {
-		//			l.Print(dir.String())
-		//		})
-		//		continue
-		//	}
-		//	v := struct {
-		//		Root file.Path
-		//		From file.Path
-		//		To   file.Path
-		//		File string
-		//	}{
-		//		Root: root.Key(),
-		//		From: d1.Key(),
-		//		To:   d2.Key(),
-		//		File: f1.Name(),
-		//	}
-		//	log.Printf("rename: %s", util.String(v))
-		//}
-		m.add(pair.From, Del|Rn)
-		m.add(pair.To, Add|Rn)
 	}
 	return m.parse()
 }
@@ -134,6 +94,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
 
+	log.Println(m.Root.String())
 	log.Println(m.Mvs.String())
 	//for _, mod := range m.Root.AllModules() {
 	//	log.Print(mod.String())

@@ -14,6 +14,7 @@ type Entry interface {
 	File() (File, bool)
 	Dir() (Dir, bool)
 	Copy() Entry
+	Iterator() Iterator
 
 	// private
 	setPath(path Path)
@@ -45,6 +46,10 @@ func (e *entry) File() (File, bool) {
 func (e *entry) Dir() (Dir, bool) {
 	d, ok := e.value.(Dir)
 	return d, ok
+}
+
+func (e *entry) Iterator() Iterator {
+	return noEntries
 }
 
 func (e *entry) setPath(path Path) {

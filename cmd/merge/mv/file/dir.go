@@ -76,6 +76,10 @@ func (d *dir) IsDir() bool {
 	return true
 }
 
+func (d *dir) Iterator() Iterator {
+	return newIterator(d.tree())
+}
+
 func (d *dir) String() string {
 	return DirString(d)
 }
@@ -95,6 +99,7 @@ func logDir(l *log.Logger, name string, d Dir) {
 		}
 	})
 }
+
 func logDir2(l *log.Logger, name string, d Dir) {
 	prefix := fmt.Sprintf("%s<%s>", name, d.Key().String())
 	if files := d.Files(); len(files) > 0 {
