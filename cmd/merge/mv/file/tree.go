@@ -164,11 +164,11 @@ func (d *dir) AllModules() (modules []Module) {
 
 func (d *dir) MvCount() TypeCount {
 	tc := make(TypeCount)
-	for _, f := range d.Files() {
-		tc.add(f.Type(), 1)
-	}
-	for _, dir := range d.Dirs() {
-		tc.addAll(dir.MvCount())
+	for it := d.DeepIterator(); it.Next(); {
+		switch e := it.Entry().(type) {
+		case File:
+			tc.add(e.Type(), 1)
+		}
 	}
 	return tc
 }

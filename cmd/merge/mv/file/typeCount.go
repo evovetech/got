@@ -11,3 +11,20 @@ func (c TypeCount) addAll(o TypeCount) {
 		c.add(t, n)
 	}
 }
+
+func (c TypeCount) All(t Type) (n int) {
+	for k, v := range c {
+		if k.HasFlag(t) {
+			n += v
+		}
+	}
+	return
+}
+
+func (c TypeCount) AllAdd() int {
+	return c.All(Add)
+}
+
+func (c TypeCount) AllDel() int {
+	return c.All(Del)
+}

@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"os"
 	spath "path"
@@ -29,9 +30,25 @@ func SrcPath() Path {
 }
 
 func GetPath(file string) Path {
+	file = removeEnds(file, '"')
 	p := ospath.ToSlash(file)
 	clean := spath.Clean(p)
 	return Path(strings.Split(clean, "/"))
+}
+
+func removeEnds(str string, check rune) string {
+	char := string(check)
+	charLen := len(char)
+	strLen := len(str)
+	if strLen < charLen*2 {
+		return str
+	}
+	if str[:charLen] == char && str[strLen-charLen:] == char {
+		log.Printf("1: %s", str)
+		str = str[charLen : strLen-charLen]
+		log.Printf("2: %s", str)
+	}
+	return str
 }
 
 func JoinPaths(paths ...Path) Path {
