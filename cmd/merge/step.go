@@ -44,7 +44,7 @@ func (s *Step) Run() error {
 		return err
 	}
 
-	if m, ok := mv.GetFileMoves(); !ok {
+	if m, ok := mv.GetFileMoves(); ok {
 		return s.commit()
 	} else {
 		return util.RunAll(
