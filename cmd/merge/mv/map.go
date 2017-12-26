@@ -95,7 +95,7 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("files: %s", util.String(m.Files))
 
 	for it := m.Root.DeepIterator(); it.Next(); {
-		log.Println(it.Path())
+		log.Println(it.FullPath())
 	}
 
 	//log.Println(m.Root.String())

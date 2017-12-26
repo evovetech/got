@@ -2,7 +2,9 @@ package file
 
 type DeepIterator interface {
 	Iterator
+	Parent() Path
 	Dir() Path
+	FullPath() Path
 }
 
 type deepIterator struct {
@@ -19,7 +21,7 @@ func newDeepIterator(dir Dir) DeepIterator {
 func (d *deepIterator) reset() Iterator {
 	state := rootState(d.root)
 	d.state = state
-	return state.it()
+	return state.it
 }
 
 func (d *deepIterator) Begin() {
@@ -57,15 +59,11 @@ func (d *deepIterator) Prev() bool {
 }
 
 func (d *deepIterator) Key() interface{} {
-	return d.state.it().Key()
+	return d.state.Key()
 }
 
 func (d *deepIterator) Value() interface{} {
 	return d.state.Entry()
-}
-
-func (d *deepIterator) Dir() Path {
-	return d.state.Dir()
 }
 
 func (d *deepIterator) Path() Path {
@@ -76,23 +74,38 @@ func (d *deepIterator) Entry() Entry {
 	return d.state.Entry()
 }
 
+func (d *deepIterator) Dir() Path {
+	return d.state.Dir()
+}
+
+func (d *deepIterator) Parent() Path {
+	return d.state.Parent()
+}
+
+func (d *deepIterator) FullPath() Path {
+	if state := d.state; state != nil {
+		return JoinPaths(state.Parent(), state.Dir(), state.Path())
+	}
+	return nil
+}
+
 type itState struct {
 	parent *itState
 	dir    Dir
-	itr    Iterator
+	it     Iterator
 
 	cur Entry
 }
 
 func rootState(dir Dir) *itState {
-	return &itState{dir: dir, itr: dir.Iterator()}
+	return &itState{dir: dir, it: dir.Iterator()}
 }
 
-func (s *itState) Dir() Path {
+func (s *itState) Key() interface{} {
 	if s == nil {
 		return nil
 	}
-	return s.dir.Path()
+	return s.it.Key()
 }
 
 func (s *itState) Entry() Entry {
@@ -104,23 +117,26 @@ func (s *itState) Entry() Entry {
 
 func (s *itState) Path() Path {
 	if e := s.Entry(); e != nil {
-		// TODO: parent path
-		if dir := s.Dir(); dir != nil {
-			return dir.Append(e.Path())
-		}
 		return e.Path()
 	}
 	return nil
 }
 
-func (s *itState) it() Iterator {
+func (s *itState) Dir() Path {
 	if s == nil {
-		return noEntries
+		return nil
 	}
-	if it := s.itr; it != nil {
-		return it
+	return s.dir.Path()
+}
+
+func (s *itState) Parent() Path {
+	if s == nil {
+		return nil
 	}
-	return noEntries
+	if p := s.parent; p != nil {
+		return JoinPaths(p.Parent(), p.Dir())
+	}
+	return nil
 }
 
 func (s *itState) next() (*itState, bool) {
@@ -128,13 +144,14 @@ func (s *itState) next() (*itState, bool) {
 		return nil, false
 	}
 	if state, found := s.nextLevel(); found {
-		state.itr.Begin()
+		state.it.Begin()
 		return state.next()
 	}
-	if s.itr.Next() {
-		s.cur = s.itr.Entry()
+	if s.it.Next() {
+		s.cur = s.it.Entry()
 		return s, true
 	}
+	s.cur = nil
 	return s.parent.next()
 }
 
@@ -143,13 +160,14 @@ func (s *itState) prev() (*itState, bool) {
 		return nil, false
 	}
 	if state, found := s.nextLevel(); found {
-		state.itr.End()
+		state.it.End()
 		return state.prev()
 	}
-	if s.itr.Prev() {
-		s.cur = s.itr.Entry()
+	if s.it.Prev() {
+		s.cur = s.it.Entry()
 		return s, true
 	}
+	s.cur = nil
 	return s.parent.prev()
 }
 
@@ -162,7 +180,7 @@ func (s *itState) nextLevel() (state *itState, found bool) {
 	switch dir := cur.(type) {
 	case Dir:
 		found = true
-		state = &itState{parent: s, dir: dir, itr: dir.Iterator()}
+		state = &itState{parent: s, dir: dir, it: dir.Iterator()}
 	}
 	return
 }
