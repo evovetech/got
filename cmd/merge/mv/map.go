@@ -1,21 +1,18 @@
 package mv
 
 import (
-	"fmt"
 	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
-	"github.com/evovetech/got/util"
-	"os"
 	"regexp"
 )
 
 type Map struct {
 	AddDelMap `json:"-"`
-	Renames   []Rename
 	Projects  Projects
 	Root      file.Dir `json:"-"`
-	Mvs       file.Dir `json:"-"`
+	Renames   file.Dir `json:"-"`
+	Reverse   file.Dir `json:"-"`
 }
 
 var reAdd = regexp.MustCompile("^A\\s+(.*)$")
@@ -28,8 +25,9 @@ func NewMap() *Map {
 		AddDelMap: make(AddDelMap),
 		Projects:  make(Projects),
 		//Files:     make(map[string]file.Dir),
-		Root: file.NewRoot(),
-		Mvs:  file.NewRoot(),
+		Root:    file.NewRoot(),
+		Renames: file.NewRoot(),
+		Reverse: file.NewRoot(),
 	}
 	return m
 }
@@ -45,26 +43,20 @@ func (m *Map) Run() ([]*Group, []Rename) {
 			m.do(match[1], Del)
 		case reRename.MatchString(status):
 			match := reRename.FindStringSubmatch(status)
-			pair := new(Rename)
-			pair.From = GetFilePath(match[1])
-			pair.To = GetFilePath(match[2])
-			m.Renames = append(m.Renames, *pair)
-		}
-	}
-	for _, pair := range m.Renames {
-		move := file.NewMove(
-			file.GetPath(pair.From.actual),
-			file.GetPath(pair.To.actual),
-		)
-		if mvPath, ok := move.Parse(); ok {
-			//log.Println(mvPath.String())
-			m.Mvs.PutFile(mvPath.String(), file.Mv)
+			move := file.NewMove(
+				file.GetPath(match[1]),
+				file.GetPath(match[2]),
+			)
+			if mvPath, ok := move.Parse(); ok {
+				//log.Println(mvPath.String())
+				m.Renames.PutFile(mvPath.String(), file.Mv)
+			}
 		}
 	}
 	return m.parse()
 }
 
-func (m *Map) parse() ([]*Group, []Rename) {
+func (m *Map) parse() (groups []*Group, renames []Rename) {
 	// TODO:
 	for _, p := range m.Projects {
 		if len(p.Others) == 0 {
@@ -94,26 +86,16 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
 
-	for it := m.Root.DeepIterator(); it.Next(); {
-		log.Println(it.FullPath())
-	}
+	//for it := m.Root.DeepIterator(); it.Next(); {
+	//	log.Println(it.FullPath())
+	//}
 
-	//log.Println(m.Root.String())
+	log.Println(m.Reverse.String())
 	//log.Println(m.Mvs.String())
 	//for _, mod := range m.Root.AllModules() {
 	//	log.Print(mod.String())
 	//}
-	pairs := m.Renames
-	errs, p := m.AddDelMap.parse()
-	if len(p) > 0 {
-		pairs = append(pairs, p...)
-	}
-	fname := fmt.Sprintf("../mergey/out-%d.json", len(pairs))
-	if f, err := os.OpenFile(fname, os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-		f.WriteString(util.String(m))
-		f.Close()
-	}
-	return errs, pairs
+	return
 }
 
 func (m *Map) getProject(dir DirPath) *Project {
@@ -141,6 +123,10 @@ func (m *Map) add(fp FilePath, typ Type) {
 	//dir.Add(path, f)
 	//m.Root.AddFile(fp.actual, file.Type(typ))
 	m.Root.PutFile(fp.actual, file.Type(typ))
+	reverse := file.GetPath(fp.actual)
+	reverse.Reverse()
+	m.Reverse.PutFile(reverse.String(), file.Type(typ))
+
 	if src := parseSrc(fp); src != nil {
 		src.Type = typ
 		p := m.getProject(src.Project)

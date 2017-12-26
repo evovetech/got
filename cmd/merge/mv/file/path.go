@@ -156,6 +156,21 @@ func (p Path) SizeOf(paths ...Path) int {
 	return size
 }
 
+func (p Path) Reverse() {
+	for m, n := 0, len(p)-1; m < n; m++ {
+		temp := p[m]
+		p[m] = p[n]
+		p[n] = temp
+		n--
+	}
+}
+
+func (p Path) ReverseCopy() Path {
+	cp := p.Copy()
+	cp.Reverse()
+	return cp
+}
+
 func (p Path) String() string {
 	return p.SPath()
 }

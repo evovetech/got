@@ -22,6 +22,12 @@ func GetFile(file string, typ Type) (Path, File) {
 	return path.Dir(), NewFile(path.Name(), typ)
 }
 
+func ReverseFile(file string, typ Type) (Path, File) {
+	path := GetPath(file)
+	path.Reverse()
+	return path.Dir(), NewFile(path.Name(), typ)
+}
+
 func NewFile(file string, typ Type) File {
 	return NewFileWithPath(GetPath(file), typ)
 }
