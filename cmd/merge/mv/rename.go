@@ -1,12 +1,13 @@
 package mv
 
 import (
+	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
 )
 
 type Rename struct {
-	From FilePath
-	To   FilePath
+	From file.Path
+	To   file.Path
 }
 
 func (p *Rename) run() error {

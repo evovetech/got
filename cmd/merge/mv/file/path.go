@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"github.com/evovetech/got/util"
 	"os"
 	spath "path"
 	ospath "path/filepath"
@@ -101,6 +102,10 @@ func (p Path) IsDir() bool {
 		return info.Mode().IsDir()
 	}
 	return false
+}
+
+func (p Path) Mkdirs() error {
+	return util.Mkdirs(p.OsPath())
 }
 
 func (p Path) Append(paths ...Path) Path {

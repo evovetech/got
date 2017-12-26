@@ -13,6 +13,11 @@ func NewMove(from Path, to Path) *MoveParser {
 	}
 }
 
+func ParseMove(from string, to string) (MovePath, bool) {
+	move := NewMove(GetPath(from), GetPath(to))
+	return move.Parse()
+}
+
 func (p *MoveParser) Parse() (MovePath, bool) {
 	for it := p.iterator(); it.hasNext(); {
 		p.result.Append(it.get()...)
