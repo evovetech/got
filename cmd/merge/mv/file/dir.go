@@ -25,6 +25,7 @@ type Dir interface {
 	Dirs() []Dir
 	Modules() []Module
 
+	DeepIterator() DeepIterator
 	AllEntries() []Entry
 	AllFiles() []File
 	AllDirs() []Dir
@@ -78,6 +79,10 @@ func (d *dir) IsDir() bool {
 
 func (d *dir) Iterator() Iterator {
 	return newIterator(d.tree())
+}
+
+func (d *dir) DeepIterator() DeepIterator {
+	return newDeepIterator(d)
 }
 
 func (d *dir) String() string {

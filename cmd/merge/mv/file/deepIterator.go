@@ -1,19 +1,25 @@
 package file
 
-import "container/list"
-
 type DeepIterator interface {
 	Iterator
+	Dir() Path
 }
 
 type deepIterator struct {
-	root  Iterator
-	stack itStack
+	root  Dir
+	state *itState
+}
+
+func newDeepIterator(dir Dir) DeepIterator {
+	d := &deepIterator{root: dir}
+	d.reset()
+	return d
 }
 
 func (d *deepIterator) reset() Iterator {
-	d.stack.reset(d.root)
-	return d.root
+	state := rootState(d.root)
+	d.state = state
+	return state.it()
 }
 
 func (d *deepIterator) Begin() {
@@ -33,85 +39,130 @@ func (d *deepIterator) Last() bool {
 }
 
 func (d *deepIterator) Next() bool {
-	stack := d.stack
-	it := stack.it()
-	switch e := it.Entry().(type) {
-	case Dir:
-		stack.push(e.Iterator())
-	default:
-		if it.Next() {
-			return true
-		}
-		stack.pop()
+	if next, found := d.state.next(); found {
+		d.state = next
+		return true
 	}
-	return d.Next()
+	d.state = nil
+	return false
 }
 
 func (d *deepIterator) Prev() bool {
-	stack := d.stack
-	it := stack.it()
-	switch e := it.Entry().(type) {
-	case Dir:
-		it := e.Iterator()
-		it.End()
-		stack.push(it)
-	default:
-		if it.Prev() {
-			return true
-		}
-		stack.pop()
+	if prev, found := d.state.prev(); found {
+		d.state = prev
+		return true
 	}
-	return d.Prev()
+	d.state = nil
+	return false
 }
 
 func (d *deepIterator) Key() interface{} {
-	return d.stack.it().Key()
+	return d.state.it().Key()
 }
 
 func (d *deepIterator) Value() interface{} {
-	return d.stack.it().Value()
+	return d.state.Entry()
+}
+
+func (d *deepIterator) Dir() Path {
+	return d.state.Dir()
 }
 
 func (d *deepIterator) Path() Path {
-	return d.stack.it().Path()
+	return d.state.Path()
 }
 
 func (d *deepIterator) Entry() Entry {
-	return d.stack.it().Entry()
+	return d.state.Entry()
 }
 
-type itStack struct {
-	stack list.List
+type itState struct {
+	parent *itState
+	dir    Dir
+	itr    Iterator
+
+	cur Entry
 }
 
-func (s *itStack) reset(it Iterator) {
-	s.stack.Init()
-	s.stack.PushFront(it)
+func rootState(dir Dir) *itState {
+	return &itState{dir: dir, itr: dir.Iterator()}
 }
 
-func (s *itStack) cur() (e *list.Element, it Iterator) {
-	if e = s.stack.Front(); e != nil {
-		it, _ = e.Value.(Iterator)
+func (s *itState) Dir() Path {
+	if s == nil {
+		return nil
 	}
-	if it == nil {
-		it = noEntries
+	return s.dir.Path()
+}
+
+func (s *itState) Entry() Entry {
+	if s == nil {
+		return nil
 	}
-	return
+	return s.cur
 }
 
-func (s *itStack) it() Iterator {
-	_, it := s.cur()
-	return it
+func (s *itState) Path() Path {
+	if e := s.Entry(); e != nil {
+		// TODO: parent path
+		if dir := s.Dir(); dir != nil {
+			return dir.Append(e.Path())
+		}
+		return e.Path()
+	}
+	return nil
 }
 
-func (s *itStack) push(it Iterator) {
-	s.stack.PushFront(it)
-}
-
-func (s *itStack) pop() Iterator {
-	if e, it := s.cur(); e != nil {
-		s.stack.Remove(e)
+func (s *itState) it() Iterator {
+	if s == nil {
+		return noEntries
+	}
+	if it := s.itr; it != nil {
 		return it
 	}
 	return noEntries
+}
+
+func (s *itState) next() (*itState, bool) {
+	if s == nil {
+		return nil, false
+	}
+	if state, found := s.nextLevel(); found {
+		state.itr.Begin()
+		return state.next()
+	}
+	if s.itr.Next() {
+		s.cur = s.itr.Entry()
+		return s, true
+	}
+	return s.parent.next()
+}
+
+func (s *itState) prev() (*itState, bool) {
+	if s == nil {
+		return nil, false
+	}
+	if state, found := s.nextLevel(); found {
+		state.itr.End()
+		return state.prev()
+	}
+	if s.itr.Prev() {
+		s.cur = s.itr.Entry()
+		return s, true
+	}
+	return s.parent.prev()
+}
+
+func (s *itState) nextLevel() (state *itState, found bool) {
+	if s.cur == nil {
+		return nil, false
+	}
+	cur := s.cur
+	s.cur = nil
+	switch dir := cur.(type) {
+	case Dir:
+		found = true
+		state = &itState{parent: s, dir: dir, itr: dir.Iterator()}
+	}
+	return
 }

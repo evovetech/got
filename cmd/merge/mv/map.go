@@ -57,7 +57,7 @@ func (m *Map) Run() ([]*Group, []Rename) {
 			file.GetPath(pair.To.actual),
 		)
 		if mvPath, ok := move.Parse(); ok {
-			log.Println(mvPath.String())
+			//log.Println(mvPath.String())
 			m.Mvs.PutFile(mvPath.String(), file.Mv)
 		}
 	}
@@ -94,8 +94,12 @@ func (m *Map) parse() ([]*Group, []Rename) {
 	//log.Printf("add: %s", util.String(m.Add))
 	//log.Printf("files: %s", util.String(m.Files))
 
-	log.Println(m.Root.String())
-	log.Println(m.Mvs.String())
+	for it := m.Root.DeepIterator(); it.Next(); {
+		log.Println(it.Path())
+	}
+
+	//log.Println(m.Root.String())
+	//log.Println(m.Mvs.String())
 	//for _, mod := range m.Root.AllModules() {
 	//	log.Print(mod.String())
 	//}
