@@ -2,10 +2,12 @@ package mv
 
 import (
 	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/cmd/merge/mv/file"
+	"github.com/evovetech/got/log"
 )
 
 type FileMoves struct {
-	Renames []Rename
+	Renames []file.MovePath
 	//errs    []*Group
 }
 
@@ -28,7 +30,9 @@ func (m *FileMoves) Run() error {
 	// abort merge, move files
 	git.AbortMerge()
 	for _, mv := range m.Renames {
-		mv.run()
+		if err := renameRun(mv); err != nil {
+			log.Err.Printf("error: %s", err.Error())
+		}
 	}
 	//if len(m.errs) > 0 {
 	//	log.Verbose.Printf("errors: %s", util.String(m.errs))

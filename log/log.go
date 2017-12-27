@@ -10,6 +10,7 @@ var (
 	Verbose = New(new(verbose), "", 0, indent)
 	Std     = New(os.Stdout, "", 0, indent)
 	Err     = New(os.Stderr, "", log.Llongfile, indent)
+	Ignore  = New(devNull, "", 0, indent)
 )
 
 func Print(v interface{}) {

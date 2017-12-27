@@ -31,7 +31,7 @@ func NewMap() *Map {
 	return m
 }
 
-func (m *Map) Run() []Rename {
+func (m *Map) Run() []file.MovePath {
 	for _, status := range git.Command("status", "-s").OutputLines() {
 		switch {
 		case reAdd.MatchString(status):
@@ -53,7 +53,7 @@ func (m *Map) Run() []Rename {
 	return m.parse()
 }
 
-func (m *Map) parse() (renames []Rename) {
+func (m *Map) parse() (paths []file.MovePath) {
 	// TODO:
 
 	//log.Printf("node1: %s", util.String(m.Root))
@@ -70,9 +70,9 @@ func (m *Map) parse() (renames []Rename) {
 	//for _, mod := range m.Root.AllModules() {
 	//	log.Print(mod.String())
 	//}
-	l := log.Std
+	l := log.Ignore
 	m.addReverse()
-	log.Println(m.Root)
+	//log.Println(m.Root)
 	//log.Println(m.Rename2)
 	//log.Println(m.Rename1)
 	//log.Println(m.Possibles)
@@ -86,6 +86,7 @@ func (m *Map) parse() (renames []Rename) {
 			if mv, ok := file.ParseMovePath(path); ok {
 				l.Printf("from: %s", mv.FromPath())
 				l.Printf("to:   %s", mv.ToPath())
+				paths = append(paths, mv)
 			}
 		})
 	}
@@ -135,10 +136,10 @@ func (m *Map) addReverseRename(parent file.Path, d file.Dir) {
 	}
 	if mv, ok := file.NewMove(from, to).Parse(); ok {
 		str := mv.String()
-		log.Printf("add rename: %s", str)
+		//log.Printf("add rename: %s", str)
 		m.Rename2.PutFile(str, file.Mv)
 	} else {
-		log.Printf("error add rename from='%s', to='%s'", from, to)
+		//log.Printf("error add rename from='%s', to='%s'", from, to)
 	}
 }
 
