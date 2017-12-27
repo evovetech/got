@@ -5,6 +5,7 @@ import (
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"strings"
+	"regexp"
 )
 
 type Move interface {
@@ -18,10 +19,27 @@ type Move interface {
 	log(l *log.Logger)
 }
 
-type move struct {
-}
-
 type MovePath []MovePart
+
+var reMovePart = regexp.MustCompile("\\((.*)\\)->\\((.*)\\)")
+
+func ParseMovePath(path Path) (MovePath, bool) {
+	var mv MovePath
+	for _, p := range path {
+		var m MovePart
+		if match := reMovePart.FindStringSubmatch(p); match != nil {
+			from := strings.Replace(match[1], "|", "/", -1)
+			to := strings.Replace(match[2], "|", "/", -1)
+			m = NewUnequalMovePart(from, to)
+		} else {
+			m = NewEqualMovePart(p)
+		}
+		if !mv.Append(m) {
+			return nil, false
+		}
+	}
+	return mv, true
+}
 
 func (mv *MovePath) Append(parts ...MovePart) (added bool) {
 	for _, m := range parts {
@@ -33,16 +51,34 @@ func (mv *MovePath) Append(parts ...MovePart) (added bool) {
 	return
 }
 
+func (mv MovePath) FromPath() Path {
+	return mv.makePath(func(part MovePart) Path {
+		return part.From().Val()
+	})
+}
+
+func (mv MovePath) ToPath() Path {
+	return mv.makePath(func(part MovePart) Path {
+		return part.To().Val()
+	})
+}
+
 func (mv MovePath) Path() Path {
-	var paths []Path
-	for _, part := range mv {
-		paths = append(paths, part.Path())
-	}
-	return JoinPaths(paths...)
+	return mv.makePath(func(part MovePart) Path {
+		return part.Path()
+	})
 }
 
 func (mv MovePath) String() string {
 	return mv.Path().String()
+}
+
+func (mv MovePath) makePath(f func(MovePart) Path) Path {
+	var paths = make([]Path, len(mv))
+	for i, part := range mv {
+		paths[i] = f(part)
+	}
+	return JoinPaths(paths...)
 }
 
 func (mv MovePath) log(l *log.Logger) {

@@ -70,12 +70,25 @@ func (m *Map) parse() (renames []Rename) {
 	//for _, mod := range m.Root.AllModules() {
 	//	log.Print(mod.String())
 	//}
-	//l := log.Std
+	l := log.Std
 	m.addReverse()
 	log.Println(m.Root)
-	log.Println(m.Rename2)
+	//log.Println(m.Rename2)
 	//log.Println(m.Rename1)
-	log.Println(m.Possibles)
+	//log.Println(m.Possibles)
+	for it := m.Rename2.DeepIterator(); it.Next(); {
+		if _, ok := it.Entry().(file.File); !ok {
+			continue
+		}
+		l.Enter("mv", func(_ *log.Logger) {
+			path := it.FullPath()
+			l.Printf("mv:   %s", path)
+			if mv, ok := file.ParseMovePath(path); ok {
+				l.Printf("from: %s", mv.FromPath())
+				l.Printf("to:   %s", mv.ToPath())
+			}
+		})
+	}
 
 	return
 }

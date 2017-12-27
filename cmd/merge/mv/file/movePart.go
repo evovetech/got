@@ -20,6 +20,19 @@ type movePart struct {
 	equal bool
 }
 
+func NewUnequalMovePart(from string, to string) MovePart {
+	return NewMovePart(
+		GetPath(from).split(),
+		GetPath(to).split(),
+		false,
+	)
+}
+
+func NewEqualMovePart(path string) MovePart {
+	sp := GetPath(path).split()
+	return NewMovePart(sp, sp, true)
+}
+
 func NewMovePart(from SplitPath, to SplitPath, equal bool) MovePart {
 	p := new(movePart)
 	p.from = from
