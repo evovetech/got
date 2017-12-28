@@ -2,7 +2,6 @@ package file
 
 import (
 	"encoding/json"
-	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"os"
 	spath "path"
@@ -36,17 +35,14 @@ func GetPath(file string) Path {
 	return Path(strings.Split(clean, "/"))
 }
 
-func removeEnds(str string, check rune) string {
-	char := string(check)
-	charLen := len(char)
-	strLen := len(str)
-	if strLen < charLen*2 {
-		return str
-	}
-	if str[:charLen] == char && str[strLen-charLen:] == char {
-		log.Printf("1: %s", str)
-		str = str[charLen : strLen-charLen]
-		log.Printf("2: %s", str)
+func removeEnds(str string, rm rune) string {
+	char := string(rm)
+	charLen, strLen := len(char), len(str)
+	begin, end := charLen, strLen-charLen
+	if end > begin &&
+		str[:begin] == char &&
+		str[end:] == char {
+		return str[begin:end]
 	}
 	return str
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 type Move interface {
