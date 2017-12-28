@@ -75,3 +75,7 @@ func (c *Cmd) OutputString() string {
 func (c *Cmd) OutputLines() []string {
 	return OutputLines(c.Build())
 }
+
+func (c *Cmd) ForEachLine(f func(string) error) error {
+	return ForEachLine(c.Build(), f)
+}

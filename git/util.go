@@ -60,10 +60,8 @@ func Checkout(args ...string) error {
 }
 
 func ResolveRmCmd(file string) Runner {
-	return Group(
-		exec.Command("rm", file),
-		AddCmd(file, "-A"),
-	)
+	exec.Command("rm", file).Run()
+	return AddCmd(file, "-A")
 }
 
 func ResolveCheckoutCmd(file string, s merge.Strategy) Runner {

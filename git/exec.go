@@ -83,17 +83,27 @@ func OutputString(cmd *exec.Cmd) string {
 	return str
 }
 
-func OutputLines(cmd *exec.Cmd) []string {
+func OutputLines(cmd *exec.Cmd) (output []string) {
+	ForEachLine(cmd, func(line string) error {
+		output = append(output, line)
+		return nil
+	})
+	return
+}
+
+func ForEachLine(cmd *exec.Cmd, f func(string) error) error {
 	b, err := OutputBytes(cmd)
 	if err != nil {
-		return []string{}
+		return err
 	}
 
+	var errors []error
 	s := bufio.NewScanner(bytes.NewReader(b))
 	s.Split(bufio.ScanLines)
-	var output []string
 	for s.Scan() {
-		output = append(output, s.Text())
+		if err := f(s.Text()); err != nil {
+			errors = append(errors, err)
+		}
 	}
-	return output
+	return util.CompositeError(errors)
 }

@@ -6,14 +6,16 @@ import (
 )
 
 func CompositeError(errors []error) error {
-	if l := len(errors); l == 1 {
+	switch len(errors) {
+	case 0:
+		return nil
+	case 1:
 		return errors[0]
-	} else if l > 0 {
-		var errStr []string
-		for _, err := range errors {
-			errStr = append(errStr, err.Error())
+	default:
+		var err = make([]string, len(errors))
+		for i, e := range errors {
+			err[i] = e.Error()
 		}
-		return fmt.Errorf("[%s]", strings.Join(errStr, ", "))
+		return fmt.Errorf("[%s]", strings.Join(err, ", "))
 	}
-	return nil
 }

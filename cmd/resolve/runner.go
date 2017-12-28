@@ -23,7 +23,6 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/log"
-	"github.com/evovetech/got/util"
 )
 
 var reDD = regexp.MustCompile("^(DD)")
@@ -31,15 +30,11 @@ var reDeletedOurs = regexp.MustCompile("^(D|UA)")
 var reDeletedTheirs = regexp.MustCompile("^(.D|AU)")
 
 func Run(st merge.Strategy) error {
-	//git.Command("update-index", "--really-refresh", "--again", "--verbose").Run()
-	var errors []error
+	git.Command("update-index", "--really-refresh", "--again", "--verbose").Run()
 	diff := git.Command("diff", "--name-only", "--diff-filter=UXB")
-	for _, file := range diff.OutputLines() {
-		if err := resolveFile(file, st); err != nil {
-			errors = append(errors, err)
-		}
-	}
-	err := util.CompositeError(errors)
+	err := diff.ForEachLine(func(file string) error {
+		return resolveFile(file, st)
+	})
 	if err == nil {
 		err = git.RemoveUntracked()
 	}
