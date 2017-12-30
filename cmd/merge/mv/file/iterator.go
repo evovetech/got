@@ -11,6 +11,11 @@ type Iterator interface {
 	Entry() Entry
 }
 
+func ItBegin(it Iterator)     { it.Begin() }
+func ItEnd(it Iterator)       { it.End() }
+func ItNext(it Iterator) bool { return it.Next() }
+func ItPrev(it Iterator) bool { return it.Prev() }
+
 type iterator struct {
 	containers.ReverseIteratorWithKey
 }

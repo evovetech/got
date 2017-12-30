@@ -41,21 +41,11 @@ func (d *deepIterator) Last() bool {
 }
 
 func (d *deepIterator) Next() bool {
-	if next, found := d.state.next(); found {
-		d.state = next
-		return true
-	}
-	d.state = nil
-	return false
+	return d.do((*itState).next)
 }
 
 func (d *deepIterator) Prev() bool {
-	if prev, found := d.state.prev(); found {
-		d.state = prev
-		return true
-	}
-	d.state = nil
-	return false
+	return d.do((*itState).prev)
 }
 
 func (d *deepIterator) Key() interface{} {
@@ -88,6 +78,19 @@ func (d *deepIterator) FullPath() Path {
 	}
 	return nil
 }
+
+func (d *deepIterator) do(next nextState) bool {
+	if next, found := next(d.state); found {
+		d.state = next
+		return true
+	}
+	d.state = nil
+	return false
+}
+
+type nextState func(*itState) (*itState, bool)
+type initIt func(Iterator)
+type nextIt func(Iterator) bool
 
 type itState struct {
 	parent *itState
@@ -140,47 +143,39 @@ func (s *itState) Parent() Path {
 }
 
 func (s *itState) next() (*itState, bool) {
-	if s == nil {
-		return nil, false
-	}
-	if state, found := s.nextLevel(); found {
-		state.it.Begin()
-		return state.next()
-	}
-	if s.it.Next() {
-		s.cur = s.it.Entry()
-		return s, true
-	}
-	s.cur = nil
-	return s.parent.next()
+	return s.do(ItBegin, ItNext)
 }
 
 func (s *itState) prev() (*itState, bool) {
+	return s.do(ItEnd, ItPrev)
+}
+
+func (s *itState) do(init initIt, next nextIt) (*itState, bool) {
 	if s == nil {
 		return nil, false
 	}
-	if state, found := s.nextLevel(); found {
-		state.it.End()
-		return state.prev()
+	if child, found := s.nextChild(); found {
+		init(child.it)
+		return child.do(init, next)
 	}
-	if s.it.Prev() {
+	if next(s.it) {
 		s.cur = s.it.Entry()
 		return s, true
 	}
 	s.cur = nil
-	return s.parent.prev()
+	return s.parent.do(init, next)
 }
 
-func (s *itState) nextLevel() (state *itState, found bool) {
+func (s *itState) nextChild() (child *itState, found bool) {
 	if s.cur == nil {
-		return nil, false
+		return
 	}
 	cur := s.cur
 	s.cur = nil
 	switch dir := cur.(type) {
 	case Dir:
 		found = true
-		state = &itState{parent: s, dir: dir, it: dir.Iterator()}
+		child = &itState{parent: s, dir: dir, it: dir.Iterator()}
 	}
 	return
 }
