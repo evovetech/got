@@ -16,3 +16,4 @@ local.properties
 
 /**/vendor/
 /**/bin/
+/**/dist/
