@@ -1,12 +1,13 @@
 hash: ffa7ee4dda1306b82d5211b9041c4a1f04e9f75cf9a8c60f9680fabef936e637
-updated: 2017-12-17T11:29:27.033191894-06:00
+updated: 2018-01-02T01:51:02.578236616-06:00
 imports:
-- name: github.com/cheekybits/genny
-  version: 9127e812e1e9e501ce899a18121d316ecb52e4ba
-  subpackages:
-  - generic
 - name: github.com/emirpasic/gods
   version: f6c17b524822278a87e3b3bd809fec33b51f5b46
+  subpackages:
+  - containers
+  - trees
+  - trees/avltree
+  - utils
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/spf13/cobra
