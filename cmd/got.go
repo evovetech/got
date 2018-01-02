@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/evovetech/got/cmd/merge"
+	"github.com/evovetech/got/cmd/play"
 	"github.com/evovetech/got/cmd/resolve"
 	"github.com/evovetech/got/cmd/version"
 	"github.com/evovetech/got/options"
@@ -33,6 +34,7 @@ func init() {
 		merge.Cmd,
 		resolve.Cmd,
 		version.Cmd,
+		play.Cmd,
 	)
 	options.AddTo(Cmd)
 }

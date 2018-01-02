@@ -42,8 +42,8 @@ func GetStrategy(str string) Strategy {
 	return NONE
 }
 
-func (s *Strategy) String() string {
-	switch *s {
+func (s Strategy) String() string {
+	switch s {
 	case THEIRS:
 		return "theirs"
 	case OURS:
@@ -52,7 +52,7 @@ func (s *Strategy) String() string {
 	return ""
 }
 
-func (s *Strategy) Option() string {
+func (s Strategy) Option() string {
 	st := s.String()
 	if st == "" {
 		return st
@@ -68,7 +68,7 @@ func (s *Strategy) Set(val string) error {
 	return fmt.Errorf("error parsing strategy: '%s'\n", val)
 }
 
-func (s *Strategy) Type() string {
+func (s Strategy) Type() string {
 	return "string"
 }
 

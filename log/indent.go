@@ -14,6 +14,58 @@ type Indent struct {
 	buf   []byte
 }
 
+type Counter interface {
+	Get() uint32
+	IncrementAndGet() uint32
+	GetAndIncrement() uint32
+	DecrementAndGet() uint32
+	TryDecrementAndGet() (uint32, bool)
+}
+
+func NewCounter() Counter {
+	var c counter
+	return &c
+}
+
+type counter uint32
+
+func (c *counter) ptr() *uint32 {
+	return (*uint32)(c)
+}
+
+func (c *counter) Get() uint32 {
+	return atomic.LoadUint32(c.ptr())
+}
+
+func (c *counter) IncrementAndGet() uint32 {
+	return atomic.AddUint32(c.ptr(), 1)
+}
+
+func (c *counter) GetAndIncrement() uint32 {
+	return c.IncrementAndGet() - 1
+}
+
+func (c *counter) DecrementAndGet() uint32 {
+	v, _ := c.TryDecrementAndGet()
+	return v
+}
+
+func (c *counter) TryDecrementAndGet() (uint32, bool) {
+	for {
+		cur := c.Get()
+		var next uint32
+		switch cur {
+		case 0:
+			return 0, false
+		default:
+			next = cur + ^uint32(0)
+		}
+		if atomic.CompareAndSwapUint32(c.ptr(), cur, next) {
+			return next, true
+		}
+	}
+}
+
 func NewIndent(size int32) *Indent {
 	indent := new(Indent)
 	indent.size = size

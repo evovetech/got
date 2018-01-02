@@ -3,6 +3,7 @@ package file
 import (
 	"fmt"
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 )
 
 type Part interface {
@@ -36,11 +37,7 @@ func (p part) To() SplitPath {
 }
 
 func (p part) Max() int {
-	max := p.from.Len()
-	if t := p.to.Len(); t > max {
-		max = t
-	}
-	return max
+	return util.MaxInt(p.from.Len(), p.to.Len())
 }
 
 func (p part) next() Part {
