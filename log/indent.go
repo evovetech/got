@@ -9,8 +9,8 @@ import (
 )
 
 type Indent struct {
-	level int32
-	size  int32
+	level Counter
+	size  uint32
 	buf   []byte
 }
 
@@ -23,8 +23,7 @@ type Counter interface {
 }
 
 func NewCounter() Counter {
-	var c counter
-	return &c
+	return new(counter)
 }
 
 type counter uint32
@@ -38,64 +37,62 @@ func (c *counter) Get() uint32 {
 }
 
 func (c *counter) IncrementAndGet() uint32 {
-	return atomic.AddUint32(c.ptr(), 1)
+	return c.GetAndIncrement() + 1
 }
 
 func (c *counter) GetAndIncrement() uint32 {
-	return c.IncrementAndGet() - 1
+	if cur := c.Get(); c.CompareAndSwap(cur, cur+1) {
+		return cur
+	}
+	return c.GetAndIncrement()
 }
 
 func (c *counter) DecrementAndGet() uint32 {
-	v, _ := c.TryDecrementAndGet()
-	return v
+	if v, ok := c.TryDecrementAndGet(); ok {
+		return v
+	}
+	return c.DecrementAndGet()
 }
 
 func (c *counter) TryDecrementAndGet() (uint32, bool) {
-	for {
-		cur := c.Get()
-		var next uint32
-		switch cur {
-		case 0:
-			return 0, false
-		default:
-			next = cur + ^uint32(0)
-		}
-		if atomic.CompareAndSwapUint32(c.ptr(), cur, next) {
-			return next, true
-		}
+	if cur := c.Get(); cur > 0 {
+		next := cur + ^uint32(0)
+		return next, c.CompareAndSwap(cur, next)
 	}
+	return 0, false
 }
 
-func NewIndent(size int32) *Indent {
-	indent := new(Indent)
-	indent.size = size
+func (c *counter) CompareAndSwap(cur uint32, next uint32) bool {
+	return atomic.CompareAndSwapUint32(c.ptr(), cur, next)
+}
+
+func NewIndent(size uint32) *Indent {
+	indent := &Indent{
+		level: NewCounter(),
+		size:  size,
+	}
 	buf := make([]byte, size)
-	for i := int32(0); i < size; i++ {
+	for i := uint32(0); i < size; i++ {
 		buf[i] = ' '
 	}
 	indent.buf = buf
 	return indent
 }
 
-func (i *Indent) Level() int32 {
-	return atomic.LoadInt32(&i.level)
+func (i *Indent) Level() uint32 {
+	return i.level.Get()
 }
 
-func (i *Indent) Size() int32 {
+func (i *Indent) Size() uint32 {
 	return i.size
 }
 
 func (i *Indent) In() {
-	atomic.AddInt32(&i.level, 1)
+	i.level.IncrementAndGet()
 }
 
 func (i *Indent) Out() {
-	for cur := atomic.LoadInt32(&i.level); cur > 0; {
-		next := cur - 1
-		if atomic.CompareAndSwapInt32(&i.level, cur, next) {
-			return
-		}
-	}
+	i.level.DecrementAndGet()
 }
 
 func (i *Indent) Transform(data []byte) ([]byte, error) {
@@ -110,7 +107,7 @@ func (i *Indent) WriteTo(w io.Writer, data []byte) (int, error) {
 	s := bufio.NewScanner(bytes.NewReader(data))
 	for s.Scan() {
 		level := i.Level()
-		for index := int32(0); index < level; index++ {
+		for index := uint32(0); index < level; index++ {
 			if n, err := w.Write(i.buf); err != nil {
 				return n, err
 			}

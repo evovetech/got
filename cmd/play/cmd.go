@@ -106,12 +106,12 @@ func (r *Result) run(num int) {
 func (r *Result) increment(num int) <-chan uint32 {
 	out := make(chan uint32, num)
 	for n := 0; n < num; n++ {
-		go func(_ int) {
+		go func() {
 			time.Sleep(time.Microsecond * 100)
 			v := r.IncrementAndGet()
-			r.logF("Increment", "before=%d, after=%d", v-1, v)
+			//r.logF("Increment", "before=%d, after=%d", v-1, v)
 			out <- v
-		}(n)
+		}()
 	}
 	return out
 }
@@ -119,17 +119,11 @@ func (r *Result) increment(num int) <-chan uint32 {
 func (r *Result) decrement(num int) <-chan uint32 {
 	out := make(chan uint32, num)
 	for n := 0; n < num; n++ {
-		go func(_ int) {
-			for done := false; !done; {
-				if v, ok := r.TryDecrementAndGet(); ok {
-					done = true
-					r.logF("Decrement", "before=%d, after=%d", v+1, v)
-					out <- v
-				} else {
-					r.log("Wait")
-				}
-			}
-		}(n)
+		go func() {
+			v := r.DecrementAndGet()
+			//r.logF("Decrement", "before=%d, after=%d", v+1, v)
+			out <- v
+		}()
 	}
 	return out
 }
