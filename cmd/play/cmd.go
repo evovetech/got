@@ -3,6 +3,7 @@ package play
 import (
 	"fmt"
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -10,14 +11,14 @@ import (
 type Result struct {
 	id   int
 	done chan bool
-	log.Counter
+	util.Counter
 }
 
 func (r *Result) String() string {
 	return fmt.Sprintf("Res<%d>(%d)", r.id, r.Get())
 }
 
-func newRes(id int, cntr log.Counter) *Result {
+func newRes(id int, cntr util.Counter) *Result {
 	return &Result{
 		id:      id,
 		done:    make(chan bool, 1),
@@ -63,7 +64,7 @@ func await(res []*Result) {
 }
 
 func RunE(cmd *cobra.Command, args []string) error {
-	counter := log.NewCounter()
+	counter := util.NewCounter()
 	size, num := 5, 10
 	res := make([]*Result, size)
 	for i := 0; i < size; i++ {
