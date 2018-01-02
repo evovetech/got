@@ -25,9 +25,19 @@ release:
   name_template: '{{.Tag}}'
 
 brew:
+  # Repository to push the tap to.
+  github:
+    owner: evovetech
+    name: homebrew-tap
+
+  # Folder inside the repository to put the formula.
+  # Default is the root folder.
+  folder: Formula
+
   commit_author:
     name: Layne Penney
     email: layne@evove.tech
+
   install: bin.install "got"
 
 builds:
