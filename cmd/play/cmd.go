@@ -2,6 +2,7 @@ package play
 
 import (
 	"fmt"
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
@@ -64,16 +65,18 @@ func await(res []*Result) {
 }
 
 func RunE(cmd *cobra.Command, args []string) error {
-	counter := util.NewCounter()
-	size, num := 5, 10
-	res := make([]*Result, size)
-	for i := 0; i < size; i++ {
-		r := newRes(i+1, counter)
-		res[i] = r
-		r.run(num)
-	}
-	await(res)
-	log.Printf("Final Count: %d", counter.Get())
+	//counter := util.NewCounter()
+	//size, num := 5, 10
+	//res := make([]*Result, size)
+	//for i := 0; i < size; i++ {
+	//	r := newRes(i+1, counter)
+	//	res[i] = r
+	//	r.run(num)
+	//}
+	//await(res)
+	//log.Printf("Final Count: %d", counter.Get())
+	commits := git.GetCommits("HEAD", 5)
+	log.Printf("head: %s", util.String(commits))
 	return nil
 }
 
