@@ -18,10 +18,9 @@ package merge
 
 import (
 	"fmt"
-	"github.com/evovetech/got/cmd/merge/mv"
-	"github.com/evovetech/got/cmd/resolve"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/merge"
+	"github.com/evovetech/got/got/merge/mv"
+	"github.com/evovetech/got/got/resolve"
 	"github.com/evovetech/got/util"
 )
 
@@ -61,7 +60,7 @@ func (s *Step) merge() error {
 	}
 
 	// git merge --no-commit -X "$cmd" "$merge_commit"
-	st := merge.OURS
+	st := git.OURS
 	m := s.Target.Ref.Merge()
 	m.Strategy = st
 	m.NoCommit()

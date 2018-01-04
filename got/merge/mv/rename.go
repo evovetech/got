@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package merge
+package mv
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/got/merge/mv/file"
 )
 
-var args Args
-var Cmd = &cobra.Command{
-	Use:   "merge",
-	Short: "Merge [BRANCH] into HEAD",
-	RunE: func(cmd *cobra.Command, a []string) error {
-		if err := args.Parse(a); err != nil {
-			return err
-		}
-		return Run(args)
-	},
+type Rename struct {
+	From file.Path
+	To   file.Path
 }
 
-func init() {
-	args.Init(Cmd)
+func renameRun(mv file.MovePath) error {
+	rename := Rename{mv.FromPath(), mv.ToPath()}
+	return rename.run()
+}
+
+func (p *Rename) run() error {
+	if err := p.To.Dir().Mkdirs(); err != nil {
+		return err
+	}
+	return git.Command("mv", p.From.OsPath(), p.To.OsPath()).Run()
 }

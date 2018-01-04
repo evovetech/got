@@ -14,32 +14,34 @@
  * limitations under the License.
  */
 
-package merge
+package cmd
 
 import (
-	"fmt"
-	"github.com/evovetech/got/git/merge"
-	"github.com/evovetech/got/util"
+	"github.com/evovetech/got/got/merge"
 	"github.com/spf13/cobra"
 )
 
-type Args struct {
-	Strategy merge.Strategy
-	Branch   string
+var m = struct {
+	args merge.Args
+	cmd  *cobra.Command
+}{
+	cmd: &cobra.Command{
+		Use:   "merge",
+		Short: "Merge [BRANCH] into HEAD",
+	},
 }
 
-func (args *Args) Init(cmd *cobra.Command) {
-	args.Strategy.AddTo(cmd.Flags())
+func mergeCmd() *cobra.Command {
+	return m.cmd
 }
 
-func (args *Args) Parse(a []string) error {
-	if len(a) != 1 {
-		return fmt.Errorf("wront number of args. expecting BRANCH, instead got %s", a)
+func init() {
+	args, cmd := m.args, m.cmd
+	cmd.RunE = func(cmd *cobra.Command, a []string) error {
+		if err := args.Parse(a); err != nil {
+			return err
+		}
+		return merge.Run(args)
 	}
-	args.Branch = a[0]
-	return nil
-}
-
-func (args Args) String() string {
-	return util.String(args)
+	args.Init(cmd)
 }

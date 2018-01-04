@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package resolve
+package merge
 
 import (
-	"github.com/spf13/cobra"
+	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/util"
 )
 
-var args Args
-var Cmd = &cobra.Command{
-	Use:   "resolve",
-	Short: "Resolve conflicts",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, a []string) error {
-		if err := args.Parse(a); err != nil {
-			return err
-		}
-		return Run(args.Strategy)
-	},
+type Merger struct {
+	HeadRef  git.Ref
+	MergeRef git.Ref
+	Strategy git.MergeStrategy
+}
+
+func (m Merger) String() string {
+	return util.String(m)
+}
+
+func (m *Merger) Run() (RunStep, error) {
+	return (*simple)(m).Run()
 }

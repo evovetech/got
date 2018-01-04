@@ -17,10 +17,8 @@
 package cmd
 
 import (
-	"github.com/evovetech/got/cmd/merge"
-	"github.com/evovetech/got/cmd/play"
-	"github.com/evovetech/got/cmd/resolve"
-	"github.com/evovetech/got/cmd/version"
+	"fmt"
+	"github.com/evovetech/got/got"
 	"github.com/evovetech/got/options"
 	"github.com/spf13/cobra"
 )
@@ -31,10 +29,16 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.AddCommand(
-		merge.Cmd,
-		resolve.Cmd,
-		version.Cmd,
-		play.Cmd,
+		mergeCmd(),
+		resolveCmd(),
+		playCmd(),
+		&cobra.Command{
+			Use:   "version",
+			Short: "Print the version",
+			Run: func(cmd *cobra.Command, args []string) {
+				fmt.Printf("got %s\n", got.Version)
+			},
+		},
 	)
 	options.AddTo(Cmd)
 }

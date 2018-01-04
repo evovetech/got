@@ -14,24 +14,39 @@
  * limitations under the License.
  */
 
-package merge
+package play
 
 import (
-	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/merge"
-	"github.com/evovetech/got/util"
+	"github.com/evovetech/got/got/merge"
+	"github.com/evovetech/got/log"
+	"github.com/spf13/cobra"
 )
 
-type Merger struct {
-	HeadRef  git.Ref
-	MergeRef git.Ref
-	Strategy merge.Strategy
+type mergeArgs struct {
+	merge.Args
 }
 
-func (m Merger) String() string {
-	return util.String(m)
+var args mergeArgs
+var mergeCmd = &cobra.Command{
+	Use:   "merge",
+	Short: "merge",
+	RunE: func(cmd *cobra.Command, a []string) error {
+		if err := args.Parse(a); err != nil {
+			return err
+		}
+		return args.run()
+	},
 }
 
-func (m *Merger) Run() (RunStep, error) {
-	return (*simple)(m).Run()
+func MergeCmd() *cobra.Command {
+	return mergeCmd
+}
+
+func init() {
+	args.Init(mergeCmd)
+}
+
+func (m *mergeArgs) run() error {
+	log.Printf("args: %s", m.Args)
+	return nil
 }

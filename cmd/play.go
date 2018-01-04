@@ -14,35 +14,30 @@
  * limitations under the License.
  */
 
-package play
+package cmd
 
 import (
-	"github.com/evovetech/got/cmd/merge"
-	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/got/play"
 	"github.com/spf13/cobra"
 )
 
-type mergeArgs struct {
-	merge.Args
+var pl = struct {
+	cmd     *cobra.Command
+	merge   *cobra.Command
+	counter *cobra.Command
+}{
+	cmd: &cobra.Command{
+		Use:   "play",
+		Short: "Play",
+	},
+	merge:   play.MergeCmd(),
+	counter: play.CounterCmd(),
 }
 
-var args mergeArgs
-var mergeCmd = &cobra.Command{
-	Use:   "merge",
-	Short: "merge",
-	RunE: func(cmd *cobra.Command, a []string) error {
-		if err := args.Parse(a); err != nil {
-			return err
-		}
-		return args.run()
-	},
+func playCmd() *cobra.Command {
+	return pl.cmd
 }
 
 func init() {
-	args.Init(mergeCmd)
-}
-
-func (m *mergeArgs) run() error {
-	log.Printf("args: %s", m.Args)
-	return nil
+	pl.cmd.AddCommand(pl.merge, pl.counter)
 }

@@ -21,7 +21,6 @@ import (
 	"regexp"
 
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/log"
 )
 
@@ -29,7 +28,7 @@ var reDD = regexp.MustCompile("^(DD)")
 var reDeletedOurs = regexp.MustCompile("^(D|UA)")
 var reDeletedTheirs = regexp.MustCompile("^(.D|AU)")
 
-func Run(st merge.Strategy) error {
+func Run(st git.MergeStrategy) error {
 	git.Command("update-index", "--really-refresh", "--again", "--verbose").Run()
 	diff := git.Command("diff", "--name-only", "--diff-filter=UXB")
 	err := diff.ForEachLine(func(file string) error {
@@ -41,7 +40,7 @@ func Run(st merge.Strategy) error {
 	return err
 }
 
-func resolveFile(file string, st merge.Strategy) error {
+func resolveFile(file string, st git.MergeStrategy) error {
 	var err error
 	status, err := git.StatusCmd(file).Output()
 	if err != nil {
@@ -50,9 +49,9 @@ func resolveFile(file string, st merge.Strategy) error {
 	switch {
 	case reDD.MatchString(status):
 		err = git.Add(file, "-u")
-	case st == merge.OURS:
+	case st == git.OURS:
 		err = resolveOurs(file, status)
-	case st == merge.THEIRS:
+	case st == git.THEIRS:
 		err = resolveTheirs(file, status)
 	default:
 		err = fmt.Errorf("unknown strategy: ")
@@ -70,7 +69,7 @@ func resolveOurs(file string, status string) error {
 	case reDeletedOurs.MatchString(status):
 		return git.ResolveRmCmd(file).Run()
 	default:
-		return git.ResolveCheckoutCmd(file, merge.OURS).Run()
+		return git.ResolveCheckoutCmd(file, git.OURS).Run()
 	}
 }
 
@@ -79,6 +78,6 @@ func resolveTheirs(file string, status string) error {
 	case reDeletedTheirs.MatchString(status):
 		return git.ResolveRmCmd(file).Run()
 	default:
-		return git.ResolveCheckoutCmd(file, merge.THEIRS).Run()
+		return git.ResolveCheckoutCmd(file, git.THEIRS).Run()
 	}
 }

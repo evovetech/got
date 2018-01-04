@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 )
@@ -109,11 +108,11 @@ func (m *multi) run(ours *branchRef, theirs *branchRef) error {
 	// second merge
 	var commit string
 	ours.Ref.Checkout()
-	if commit, err = s1.MergeCommitTree("", merge.THEIRS); err != nil {
+	if commit, err = s1.MergeCommitTree("", git.THEIRS); err != nil {
 		return err
 	}
-	if m.Strategy == merge.OURS {
-		if commit, err = s1.MergeCommitTree(commit, merge.OURS); err != nil {
+	if m.Strategy == git.OURS {
+		if commit, err = s1.MergeCommitTree(commit, git.OURS); err != nil {
 			return err
 		}
 	}
@@ -137,13 +136,13 @@ func (m *multiStep) RunE(findRenames int) error {
 	)
 }
 
-func (m *multiStep) MergeCommitTree(head string, which merge.Strategy) (commit string, err error) {
+func (m *multiStep) MergeCommitTree(head string, which git.MergeStrategy) (commit string, err error) {
 	pick := m.theirs
 	mergeHead := pick.Ref.ShortSha()
 	switch which {
-	case merge.OURS:
+	case git.OURS:
 		pick = m.ours
-	case merge.THEIRS:
+	case git.THEIRS:
 		head = m.ours.Ref.ShortSha()
 	}
 	tree := pick.Ref.TreeRef()

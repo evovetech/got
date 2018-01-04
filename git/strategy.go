@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package merge
+package git
 
 import (
 	"fmt"
@@ -24,15 +24,15 @@ import (
 	"strings"
 )
 
-type Strategy int
+type MergeStrategy int
 
 const (
-	NONE Strategy = iota
+	NONE MergeStrategy = iota
 	THEIRS
 	OURS
 )
 
-func GetStrategy(str string) Strategy {
+func GetStrategy(str string) MergeStrategy {
 	switch strings.ToLower(str) {
 	case "theirs":
 		return THEIRS
@@ -42,7 +42,7 @@ func GetStrategy(str string) Strategy {
 	return NONE
 }
 
-func (s Strategy) String() string {
+func (s MergeStrategy) String() string {
 	switch s {
 	case THEIRS:
 		return "theirs"
@@ -52,7 +52,7 @@ func (s Strategy) String() string {
 	return ""
 }
 
-func (s Strategy) Option() string {
+func (s MergeStrategy) Option() string {
 	st := s.String()
 	if st == "" {
 		return st
@@ -60,7 +60,7 @@ func (s Strategy) Option() string {
 	return fmt.Sprintf("--%s", st)
 }
 
-func (s *Strategy) Set(val string) error {
+func (s *MergeStrategy) Set(val string) error {
 	if st := GetStrategy(val); st != NONE {
 		*s = st
 		return nil
@@ -68,17 +68,17 @@ func (s *Strategy) Set(val string) error {
 	return fmt.Errorf("error parsing strategy: '%s'\n", val)
 }
 
-func (s Strategy) Type() string {
+func (s MergeStrategy) Type() string {
 	return "string"
 }
 
-func (s *Strategy) AddTo(f *pflag.FlagSet) *pflag.Flag {
+func (s *MergeStrategy) AddTo(f *pflag.FlagSet) *pflag.Flag {
 	// set default
 	*s = THEIRS
 	return f.VarPF(s, "strategy", "s", "strategy")
 }
 
 // Json
-func (s Strategy) MarshalJSON() ([]byte, error) {
+func (s MergeStrategy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }

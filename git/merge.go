@@ -20,13 +20,12 @@ import (
 	"os/exec"
 
 	"fmt"
-	"github.com/evovetech/got/git/merge"
 )
 
 type MergeCmd struct {
 	cmd *Cmd
 
-	Strategy        merge.Strategy
+	Strategy        MergeStrategy
 	StrategyOptions []string
 	MergeRef        string
 }
@@ -69,7 +68,7 @@ func (m *MergeCmd) FindRenames(percent int) {
 
 func (m *MergeCmd) Build() *exec.Cmd {
 	m.cmd.AddOption("-s", "recursive")
-	if st := m.Strategy; st != merge.NONE {
+	if st := m.Strategy; st != NONE {
 		m.cmd.AddOption("-X", st.String())
 	}
 	for _, o := range m.StrategyOptions {

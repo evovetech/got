@@ -21,7 +21,6 @@ import (
 	"regexp"
 
 	"fmt"
-	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
 )
 
@@ -64,7 +63,7 @@ func ResolveRmCmd(file string) Runner {
 	return AddCmd(file, "-A")
 }
 
-func ResolveCheckoutCmd(file string, s merge.Strategy) Runner {
+func ResolveCheckoutCmd(file string, s MergeStrategy) Runner {
 	return Group(
 		CheckoutCmd(s.Option(), "--", file),
 		AddCmd(file, "-A"),

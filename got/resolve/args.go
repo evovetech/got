@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package mv
+package resolve
 
 import (
-	"github.com/evovetech/got/cmd/merge/mv/file"
 	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/util"
 )
 
-type Rename struct {
-	From file.Path
-	To   file.Path
+type Args struct {
+	Strategy git.MergeStrategy
 }
 
-func renameRun(mv file.MovePath) error {
-	rename := Rename{mv.FromPath(), mv.ToPath()}
-	return rename.run()
+func (args *Args) Parse(a []string) error {
+	return args.Strategy.Set(a[0])
 }
 
-func (p *Rename) run() error {
-	if err := p.To.Dir().Mkdirs(); err != nil {
-		return err
-	}
-	return git.Command("mv", p.From.OsPath(), p.To.OsPath()).Run()
+func (args Args) String() string {
+	return util.String(args)
 }

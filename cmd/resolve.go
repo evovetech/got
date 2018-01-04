@@ -14,28 +14,33 @@
  * limitations under the License.
  */
 
-package play
+package cmd
 
 import (
-	"github.com/evovetech/got/log"
-	"github.com/evovetech/got/util"
+	"github.com/evovetech/got/got/resolve"
 	"github.com/spf13/cobra"
 )
 
-var counterCmd = &cobra.Command{
-	Use:   "counter",
-	Short: "counter",
-	RunE: func(cmd *cobra.Command, a []string) error {
-		counter := util.NewCounter()
-		size, num := 5, 10
-		res := make([]*Result, size)
-		for i := 0; i < size; i++ {
-			r := newRes(i+1, counter)
-			res[i] = r
-			r.run(num)
-		}
-		await(res)
-		log.Printf("Final Count: %d", counter.Get())
-		return nil
+var r = struct {
+	args resolve.Args
+	cmd  *cobra.Command
+}{
+	cmd: &cobra.Command{
+		Use:   "resolve",
+		Short: "Resolve conflicts",
 	},
+}
+
+func resolveCmd() *cobra.Command {
+	return r.cmd
+}
+
+func init() {
+	args, cmd := r.args, r.cmd
+	cmd.RunE = func(cmd *cobra.Command, a []string) error {
+		if err := args.Parse(a); err != nil {
+			return err
+		}
+		return resolve.Run(args.Strategy)
+	}
 }

@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-package resolve
+package merge
 
 import (
-	"github.com/evovetech/got/git/merge"
+	"fmt"
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/util"
+	"github.com/spf13/cobra"
 )
 
 type Args struct {
-	Strategy merge.Strategy
+	Strategy git.MergeStrategy
+	Branch   string
+}
+
+func (args *Args) Init(cmd *cobra.Command) {
+	args.Strategy.AddTo(cmd.Flags())
 }
 
 func (args *Args) Parse(a []string) error {
-	return args.Strategy.Set(a[0])
+	if len(a) != 1 {
+		return fmt.Errorf("wront number of args. expecting BRANCH, instead got %s", a)
+	}
+	args.Branch = a[0]
+	return nil
 }
 
 func (args Args) String() string {
