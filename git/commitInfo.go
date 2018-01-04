@@ -13,10 +13,12 @@ var (
 type CommitInfo struct {
 	sha     string
 	tree    string
-	parents CommitMap
+	parents map[string]bool
+
+	children CommitMap
 }
 
-func GetCommits(start string, num int) *CommitInfo {
+func GetCommits(start string, num int) CommitMap {
 	ref, ok := ParseRef(start)
 	if ok != nil {
 		return nil
@@ -24,13 +26,13 @@ func GetCommits(start string, num int) *CommitInfo {
 	head := ref.Commit.Full
 	info := GetCommitInfo(head)
 	if info != nil {
-		info.Populate(num - 1)
+		return info.Populate(num - 1)
 	}
-	return info
+	return nil
 }
 
 func GetCommitInfo(sha string) *CommitInfo {
-	info, _ := commits.init().getOrCreate(sha)
+	info, _ := commits.getOrCreate(sha)
 	return info
 }
 
@@ -38,17 +40,64 @@ func (info *CommitInfo) Tree() string {
 	return info.tree
 }
 
-func (info *CommitInfo) Parents() CommitMap {
-	return info.parents.init()
+func (info *CommitInfo) Parents() map[string]bool {
+	return info.parents
 }
 
-func (info *CommitInfo) Populate(num int) {
-	info.Parents().populate(num)
+func (info *CommitInfo) Children() CommitMap {
+	return info.children.init()
+}
+
+func (info *CommitInfo) Populate(n int) CommitMap {
+	info.populate(n)
+	return info.findRoots()
+}
+
+type pTypes []*pType
+type pType struct {
+	info    *CommitInfo
+	created bool
+}
+
+func (p *pTypes) append(types ...*pType) {
+	*p = append(*p, types...)
+}
+
+func (info *CommitInfo) populate(n int) (parents pTypes) {
+	if n <= 0 {
+		return
+	}
+
+	for sha := range info.parents {
+		p, created := commits.getOrCreate(sha)
+		p.children.put(info)
+		parents.append(&pType{p, created})
+		parents.append(p.populate(n - 1)...)
+	}
+	return
 }
 
 func (info CommitInfo) MarshalJSON() ([]byte, error) {
-	return json.Marshal(info.parents)
+	return json.Marshal(info.children)
 }
+
+func (info *CommitInfo) findRoots() (r CommitMap) {
+	for sha := range info.parents {
+		if p, found := commits.get(sha); found {
+			if gr := p.findRoots(); len(gr) > 0 {
+				r.putAll(gr)
+			} else {
+				r.put(p)
+			}
+		}
+	}
+	return
+}
+
+//
+//func findRoots(commit string) {
+//	c, _ := commits.getOrCreate()
+//}
 
 type CommitMap map[string]*CommitInfo
 
@@ -61,59 +110,100 @@ func (m *CommitMap) init() CommitMap {
 	return v
 }
 
-func (m *CommitMap) put(commit string, info *CommitInfo) {
-	m.init()[commit] = info
+func (m *CommitMap) put(info *CommitInfo) {
+	if !m.find(info.sha) {
+		m.init()[info.sha] = info
+	}
+}
+
+func (m *CommitMap) putAll(cm CommitMap) {
+	for _, v := range cm {
+		m.put(v)
+	}
+}
+
+func (m *CommitMap) find(commit string) bool {
+	if cm := *m; cm != nil {
+		for _, info := range cm {
+			if info.sha == commit || info.children.find(commit) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (m *CommitMap) add(commit string) {
-	m.put(commit, nil)
-}
-
-func (m CommitMap) populate(num int) {
-	if num <= 0 {
-		return
-	}
-	var i, parents = 0, make([]string, len(m))
-	for k := range m {
-		parents[i] = k
-		i++
-	}
-	for _, commit := range parents {
-		if p := m[commit]; p == nil {
-			p = GetCommitInfo(commit)
-			p.Populate(num - 1)
-			m[commit] = p
-		}
+	if !m.find(commit) {
+		m.init()[commit] = nil
 	}
 }
 
-func (m CommitMap) getOrCreate(commit string) (info *CommitInfo, created bool) {
-	var ok = false
-	if info, ok = m[commit]; ok {
-		return
+func (m *CommitMap) getOrCreate(commit string) (info *CommitInfo, created bool) {
+	var found = false
+	if info, found = m.get(commit); !found {
+		info, created = newCommitInfo(commit), true
+		m.init()[commit] = info
 	}
-	info, created = newCommitInfo(commit), true
-	m[commit] = info
 	return
 }
 
-func newCommitInfo(sha string) (info *CommitInfo) {
-	ci := func() *CommitInfo {
-		if info == nil {
-			info = &CommitInfo{sha: sha}
+func (m *CommitMap) get(commit string) (*CommitInfo, bool) {
+	if cm := *m; cm != nil {
+		if info, ok := cm[commit]; ok && info != nil {
+			return info, true
 		}
-		return info
 	}
+	return nil, false
+}
+
+type commitInfo struct {
+	sha      string
+	tree     string
+	children map[string]*commitInfo
+}
+
+type CommitTree struct {
+	roots map[string]*commitInfo
+}
+
+//func (info *CommitInfo) toTree() *CommitTree {
+//	var tree CommitTree
+//	tree.children = make(map[string]*CommitTree)
+//
+//}
+
+/*
+    ^
+  ^   ^
+  ^   ^
+    ^
+    ^
+ */
+
+func newCommitInfo(sha string) (info *CommitInfo) {
+	ci := func() *CommitInfo { return initInfo(&info, sha) }
 	Command("cat-file", "-p", sha).ForEachLine(func(line string) error {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
 				ci().tree = match[2]
 			case "parent":
-				ci().parents.add(match[2])
+				ci().parents[match[2]] = true
 			}
 		}
 		return nil
 	})
+	return
+}
+
+func initInfo(ptr **CommitInfo, sha string) (info *CommitInfo) {
+	if info = *ptr; info == nil {
+		info = &CommitInfo{
+			sha:     sha,
+			parents: make(map[string]bool),
+		}
+		*ptr = info
+	}
 	return
 }
