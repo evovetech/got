@@ -34,8 +34,8 @@ type CommitInfo struct {
 	children CommitMap
 }
 
-func GetCommits(start string, num int) CommitMap {
-	if ref, err := ParseRef(start); err == nil {
+func GetCommits(commit string, num int) CommitMap {
+	if ref, err := ParseRef(commit); err == nil {
 		if info := GetCommitInfo(ref.Commit.Full); info != nil {
 			return info.Populate(num - 1)
 		}

@@ -34,6 +34,22 @@ type beginStep struct {
 	args Args
 }
 
+func NewMerger(args Args) (merger *Merger, err error) {
+	log.Printf("args: %s\n", args)
+	var headRef, mergeRef git.Ref
+	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
+		return
+	}
+	if headRef, err = git.ParseRef("HEAD"); err != nil {
+		return
+	}
+
+	merger = &Merger{headRef, mergeRef, args.Strategy}
+
+	log.Verbose.Printf("merger: %s\n", merger)
+	return
+}
+
 func Run(args Args) (err error) {
 	next := beginMerge(args)
 	for next != nil {
@@ -57,19 +73,6 @@ func (s *beginStep) PreRun() error {
 	return git.CheckStatus()
 }
 
-func (s *beginStep) Run() (merger RunStep, err error) {
-	args := s.args
-	log.Printf("args: %s\n", args)
-	var headRef, mergeRef git.Ref
-	if mergeRef, err = git.ParseRef(args.Branch); err != nil {
-		return
-	}
-	if headRef, err = git.ParseRef("HEAD"); err != nil {
-		return
-	}
-
-	merger = &Merger{headRef, mergeRef, args.Strategy}
-
-	log.Verbose.Printf("merger: %s\n", merger)
-	return
+func (s *beginStep) Run() (RunStep, error) {
+	return NewMerger(s.args)
 }

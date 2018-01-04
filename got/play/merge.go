@@ -22,19 +22,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type mergeArgs struct {
-	merge.Args
+type merger struct {
+	*merge.Merger
+	args merge.Args
 }
 
-var args mergeArgs
+var m merger
 var mergeCmd = &cobra.Command{
 	Use:   "merge",
 	Short: "merge",
 	RunE: func(cmd *cobra.Command, a []string) error {
-		if err := args.Parse(a); err != nil {
+		if err := m.parse(a); err != nil {
 			return err
 		}
-		return args.run()
+		return m.run()
 	},
 }
 
@@ -43,10 +44,18 @@ func MergeCmd() *cobra.Command {
 }
 
 func init() {
-	args.Init(mergeCmd)
+	m.args.Init(mergeCmd)
 }
 
-func (m *mergeArgs) run() error {
-	log.Printf("args: %s", m.Args)
+func (m *merger) parse(a []string) (err error) {
+	if err = m.args.Parse(a); err != nil {
+		return
+	}
+	m.Merger, err = merge.NewMerger(m.args)
+	return
+}
+
+func (m *merger) run() error {
+	log.Printf("merge: %s", m)
 	return nil
 }
