@@ -17,6 +17,7 @@
 package merge
 
 import (
+	"fmt"
 	"github.com/evovetech/got/git/merge"
 	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
@@ -32,6 +33,9 @@ func (args *Args) Init(cmd *cobra.Command) {
 }
 
 func (args *Args) Parse(a []string) error {
+	if len(a) != 1 {
+		return fmt.Errorf("wront number of args. expecting BRANCH, instead got %s", a)
+	}
 	args.Branch = a[0]
 	return nil
 }

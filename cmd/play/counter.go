@@ -17,17 +17,25 @@
 package play
 
 import (
+	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
 )
 
-var Cmd = &cobra.Command{
-	Use:   "play",
-	Short: "Play",
-}
-
-func init() {
-	Cmd.AddCommand(
-		mergeCmd,
-		counterCmd,
-	)
+var counterCmd = &cobra.Command{
+	Use:   "counter",
+	Short: "counter",
+	RunE: func(cmd *cobra.Command, a []string) error {
+		counter := util.NewCounter()
+		size, num := 5, 10
+		res := make([]*Result, size)
+		for i := 0; i < size; i++ {
+			r := newRes(i+1, counter)
+			res[i] = r
+			r.run(num)
+		}
+		await(res)
+		log.Printf("Final Count: %d", counter.Get())
+		return nil
+	},
 }

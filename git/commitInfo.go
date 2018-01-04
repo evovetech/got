@@ -17,8 +17,8 @@
 package git
 
 import (
-	"regexp"
 	"encoding/json"
+	"regexp"
 )
 
 var (
@@ -35,14 +35,10 @@ type CommitInfo struct {
 }
 
 func GetCommits(start string, num int) CommitMap {
-	ref, ok := ParseRef(start)
-	if ok != nil {
-		return nil
-	}
-	head := ref.Commit.Full
-	info := GetCommitInfo(head)
-	if info != nil {
-		return info.Populate(num - 1)
+	if ref, err := ParseRef(start); err == nil {
+		if info := GetCommitInfo(ref.Commit.Full); info != nil {
+			return info.Populate(num - 1)
+		}
 	}
 	return nil
 }
@@ -195,7 +191,7 @@ type CommitTree struct {
   ^   ^
     ^
     ^
- */
+*/
 
 func newCommitInfo(sha string) (info *CommitInfo) {
 	ci := func() *CommitInfo { return initInfo(&info, sha) }

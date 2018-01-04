@@ -24,7 +24,6 @@ var args Args
 var Cmd = &cobra.Command{
 	Use:   "merge",
 	Short: "Merge [BRANCH] into HEAD",
-	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, a []string) error {
 		if err := args.Parse(a); err != nil {
 			return err

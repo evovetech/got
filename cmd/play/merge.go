@@ -17,17 +17,32 @@
 package play
 
 import (
+	"github.com/evovetech/got/cmd/merge"
+	"github.com/evovetech/got/log"
 	"github.com/spf13/cobra"
 )
 
-var Cmd = &cobra.Command{
-	Use:   "play",
-	Short: "Play",
+type mergeArgs struct {
+	merge.Args
+}
+
+var args mergeArgs
+var mergeCmd = &cobra.Command{
+	Use:   "merge",
+	Short: "merge",
+	RunE: func(cmd *cobra.Command, a []string) error {
+		if err := args.Parse(a); err != nil {
+			return err
+		}
+		return args.run()
+	},
 }
 
 func init() {
-	Cmd.AddCommand(
-		mergeCmd,
-		counterCmd,
-	)
+	args.Init(mergeCmd)
+}
+
+func (m *mergeArgs) run() error {
+	log.Printf("args: %s", m.Args)
+	return nil
 }
