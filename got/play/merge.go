@@ -17,9 +17,12 @@
 package play
 
 import (
+	"github.com/evovetech/got/git/commit"
 	"github.com/evovetech/got/got/merge"
 	"github.com/evovetech/got/log"
+	"github.com/evovetech/got/util"
 	"github.com/spf13/cobra"
+	"gopkg.in/gyuho/goraph.v2"
 )
 
 type merger struct {
@@ -57,5 +60,26 @@ func (m *merger) parse(a []string) (err error) {
 
 func (m *merger) run() error {
 	log.Printf("merge: %s", m)
+	g := commit.NewGraph()
+	if err, pop := g.Populate(m.HeadRef.Commit.Full, 5); err != nil {
+		log.Printf("head: pop=%v, err=%s", pop, err.Error())
+	}
+	if err, pop := g.Populate(m.MergeRef.Commit.Full, 5); err != nil {
+		log.Printf("merge: pop=%v, err=%s", pop, err.Error())
+	}
+	//kruskal, _ := goraph.Kruskal(g)
+	//map2 := make(map[string]struct{}, len(kruskal))
+	//for k, v := range kruskal {
+	//	map2[k.String()] = v
+	//}
+	if ts, ok := goraph.TopologicalSort(g); ok {
+		log.Printf("graph: %s", util.String(ts))
+	}
+	//if ref := m.HeadRef.GetCommits(5); ref != nil {
+	//	log.Printf("head: %s", util.String(ref))
+	//}
+	//if ref := m.MergeRef.GetCommits(5); ref != nil {
+	//	log.Printf("merge: %s", util.String(ref))
+	//}
 	return nil
 }

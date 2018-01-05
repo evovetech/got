@@ -2,10 +2,12 @@
 
 paths=(
     "cmd"
+    "collect"
     "git"
     "got"
     "log"
     "options"
+    "types"
     "util"
     "main.go"
 )

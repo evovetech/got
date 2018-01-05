@@ -18,6 +18,8 @@ package git
 
 import (
 	"encoding/json"
+	"github.com/emirpasic/gods/trees/avltree"
+	"github.com/emirpasic/gods/utils"
 	"regexp"
 )
 
@@ -25,6 +27,24 @@ var (
 	commits      CommitMap
 	reCommitLine = regexp.MustCompile("^(\\w+)\\s+(.*)$")
 )
+
+type CommitGraph struct {
+	root *avltree.Tree
+}
+
+func newGraph() *CommitGraph {
+	return &CommitGraph{
+		root: avltree.NewWith(func(a, b interface{}) int {
+			ag, bg := a.(*CommitInfo), b.(*CommitInfo)
+			return utils.StringComparator(ag.sha, bg.sha)
+		}),
+	}
+}
+
+type CommitEntry struct {
+	info     *CommitInfo
+	children *CommitGraph
+}
 
 type CommitInfo struct {
 	sha     string
@@ -34,11 +54,16 @@ type CommitInfo struct {
 	children CommitMap
 }
 
+func (r Ref) GetCommits(num int) CommitMap {
+	if info := GetCommitInfo(r.Commit.Full); info != nil {
+		return info.Populate(num - 1)
+	}
+	return nil
+}
+
 func GetCommits(commit string, num int) CommitMap {
 	if ref, err := ParseRef(commit); err == nil {
-		if info := GetCommitInfo(ref.Commit.Full); info != nil {
-			return info.Populate(num - 1)
-		}
+		return ref.GetCommits(num)
 	}
 	return nil
 }

@@ -1,6 +1,8 @@
-hash: ffa7ee4dda1306b82d5211b9041c4a1f04e9f75cf9a8c60f9680fabef936e637
-updated: 2018-01-02T01:51:02.578236616-06:00
+hash: e1d76d852e4a8caa914663cce6060ff1a5c53c6e4014796474566d776313a069
+updated: 2018-01-05T11:11:25.71787151-06:00
 imports:
+- name: github.com/cheekybits/genny
+  version: 9127e812e1e9e501ce899a18121d316ecb52e4ba
 - name: github.com/emirpasic/gods
   version: f6c17b524822278a87e3b3bd809fec33b51f5b46
   subpackages:
@@ -14,4 +16,6 @@ imports:
   version: 7b2c5ac9fc04fc5efafb60700713d4fa609b777b
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+- name: gopkg.in/gyuho/goraph.v2
+  version: d460590d53a91b1f29347ca9b01d1e8c158cbeb2
 testImports: []
