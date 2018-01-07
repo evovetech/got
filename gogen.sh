@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 pkgs=(
+    "collect/map.go"
     "collect/set.go"
 )
 

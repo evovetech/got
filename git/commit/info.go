@@ -33,34 +33,15 @@ type Info struct {
 	parents collect.ShaSet
 }
 
-//func (info *CommitInfo) toTree() *CommitTree {
-//	var tree CommitTree
-//	tree.children = make(map[string]*CommitTree)
-//
-//}
-
-/*
-    ^
-  ^   ^
-  ^   ^
-    ^
-    ^
-*/
-/*
-m1 = ShaSet
-h1 = commitlist
-all = map[Sha]commitlist
-*/
-
 func NewInfo(sha types.Sha) (info *Info) {
-	ci := func() *Info { return initInfo(&info, sha) }
+	getInfo := infoGetter(&info, sha)
 	git.Command("cat-file", "-p", sha.String()).ForEachLine(func(line string) error {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
-				ci().tree = match[2]
+				getInfo().tree = match[2]
 			case "parent":
-				ci().parents.Add(types.Sha(match[2]))
+				getInfo().parents.Add(types.Sha(match[2]))
 			}
 		}
 		return nil
@@ -68,10 +49,12 @@ func NewInfo(sha types.Sha) (info *Info) {
 	return
 }
 
-func initInfo(ptr **Info, sha types.Sha) (info *Info) {
-	if info = *ptr; info == nil {
-		info = &Info{sha: sha}
-		*ptr = info
+func infoGetter(ptr **Info, sha types.Sha) func() *Info {
+	return func() (info *Info) {
+		if info = *ptr; info == nil {
+			info = &Info{sha: sha}
+			*ptr = info
+		}
+		return
 	}
-	return
 }

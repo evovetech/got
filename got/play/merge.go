@@ -17,6 +17,7 @@
 package play
 
 import (
+	"github.com/evovetech/got/collect"
 	"github.com/evovetech/got/git/commit"
 	"github.com/evovetech/got/got/merge"
 	"github.com/evovetech/got/log"
@@ -60,6 +61,8 @@ func (m *merger) parse(a []string) (err error) {
 
 func (m *merger) run() error {
 	log.Printf("merge: %s", m)
+	var _ collect.ShaCounterSet
+
 	g := commit.NewGraph()
 	if err, pop := g.Populate(m.HeadRef.Commit.Full, 5); err != nil {
 		log.Printf("head: pop=%v, err=%s", pop, err.Error())

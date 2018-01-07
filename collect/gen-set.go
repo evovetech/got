@@ -4,38 +4,56 @@
 
 package collect
 
-type StringSet map[String]bool
+type StringSet = StringBooleanMap
 
-func (set *StringSet) Init() (s StringSet) {
-	if s = *set; s == nil {
-		s = make(StringSet)
-		*set = s
-	}
-	return
+func (set *StringSet) Add(t String) bool {
+	return set.Put(t, true)
 }
 
-func (set *StringSet) Add(val String) bool {
-	if s := set.Init(); !s[val] {
-		s[val] = true
-		return true
-	}
-	return false
+type StringCounterSet = StringIntegerMap
+
+func (set *StringCounterSet) Add(t String, num int) int {
+	s := set.Init()
+	next := s[t] + num
+	s[t] = next
+	return next
 }
 
-type ShaSet map[Sha]bool
-
-func (set *ShaSet) Init() (s ShaSet) {
-	if s = *set; s == nil {
-		s = make(ShaSet)
-		*set = s
-	}
-	return
+func (set *StringCounterSet) Subtract(t String, num int) int {
+	return set.Add(t, -1)
 }
 
-func (set *ShaSet) Add(val Sha) bool {
-	if s := set.Init(); !s[val] {
-		s[val] = true
-		return true
-	}
-	return false
+func (set *StringCounterSet) Increment(t String) int {
+	return set.Add(t, 1)
+}
+
+func (set *StringCounterSet) Decrement(t String) int {
+	return set.Subtract(t, 1)
+}
+
+type ShaSet = ShaBooleanMap
+
+func (set *ShaSet) Add(t Sha) bool {
+	return set.Put(t, true)
+}
+
+type ShaCounterSet = ShaIntegerMap
+
+func (set *ShaCounterSet) Add(t Sha, num int) int {
+	s := set.Init()
+	next := s[t] + num
+	s[t] = next
+	return next
+}
+
+func (set *ShaCounterSet) Subtract(t Sha, num int) int {
+	return set.Add(t, -1)
+}
+
+func (set *ShaCounterSet) Increment(t Sha) int {
+	return set.Add(t, 1)
+}
+
+func (set *ShaCounterSet) Decrement(t Sha) int {
+	return set.Subtract(t, 1)
 }
