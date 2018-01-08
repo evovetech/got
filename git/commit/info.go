@@ -89,9 +89,10 @@ func NextParentGetter(refs ...git.Ref) InfoGetter {
 func FindForkCommit(refs ...git.Ref) (*Info, bool) {
 	var commits collect.ShaCounterSet
 	var nextParent = NextParentGetter(refs...)
+	var target = len(refs)
 	for {
 		if next, ok := nextParent(); ok {
-			if n := commits.Increment(next.Sha()); n > 1 {
+			if n := commits.Increment(next.Sha()); n >= target {
 				return next, true
 			}
 		} else {
