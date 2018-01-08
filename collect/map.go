@@ -20,3 +20,18 @@ func (mp *K_V_Map) Put(key K_, val V_) bool {
 	m[key] = val
 	return true
 }
+
+func (mp *K_V_Map) Keys() []K_ {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]K_, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}

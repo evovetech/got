@@ -23,6 +23,21 @@ func (mp *T_T_Map) Put(key T_, val T_) bool {
 	return true
 }
 
+func (mp *T_T_Map) Keys() []T_ {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]T_, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 type T_BooleanMap map[T_]Boolean
 
 func (mp *T_BooleanMap) Init() (m T_BooleanMap) {
@@ -40,6 +55,21 @@ func (mp *T_BooleanMap) Put(key T_, val Boolean) bool {
 	}
 	m[key] = val
 	return true
+}
+
+func (mp *T_BooleanMap) Keys() []T_ {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]T_, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
 }
 
 type T_IntegerMap map[T_]Integer
@@ -61,6 +91,21 @@ func (mp *T_IntegerMap) Put(key T_, val Integer) bool {
 	return true
 }
 
+func (mp *T_IntegerMap) Keys() []T_ {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]T_, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 type StringT_Map map[String]T_
 
 func (mp *StringT_Map) Init() (m StringT_Map) {
@@ -78,6 +123,21 @@ func (mp *StringT_Map) Put(key String, val T_) bool {
 	}
 	m[key] = val
 	return true
+}
+
+func (mp *StringT_Map) Keys() []String {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]String, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
 }
 
 type StringBooleanMap map[String]Boolean
@@ -99,6 +159,21 @@ func (mp *StringBooleanMap) Put(key String, val Boolean) bool {
 	return true
 }
 
+func (mp *StringBooleanMap) Keys() []String {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]String, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 type StringIntegerMap map[String]Integer
 
 func (mp *StringIntegerMap) Init() (m StringIntegerMap) {
@@ -116,6 +191,21 @@ func (mp *StringIntegerMap) Put(key String, val Integer) bool {
 	}
 	m[key] = val
 	return true
+}
+
+func (mp *StringIntegerMap) Keys() []String {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]String, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
 }
 
 type ShaT_Map map[Sha]T_
@@ -137,6 +227,21 @@ func (mp *ShaT_Map) Put(key Sha, val T_) bool {
 	return true
 }
 
+func (mp *ShaT_Map) Keys() []Sha {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]Sha, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 type ShaBooleanMap map[Sha]Boolean
 
 func (mp *ShaBooleanMap) Init() (m ShaBooleanMap) {
@@ -156,6 +261,21 @@ func (mp *ShaBooleanMap) Put(key Sha, val Boolean) bool {
 	return true
 }
 
+func (mp *ShaBooleanMap) Keys() []Sha {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]Sha, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 type ShaIntegerMap map[Sha]Integer
 
 func (mp *ShaIntegerMap) Init() (m ShaIntegerMap) {
@@ -173,4 +293,19 @@ func (mp *ShaIntegerMap) Put(key Sha, val Integer) bool {
 	}
 	m[key] = val
 	return true
+}
+
+func (mp *ShaIntegerMap) Keys() []Sha {
+	m := *mp
+	if m == nil {
+		return nil
+	}
+
+	i := 0
+	var keys = make([]Sha, len(m))
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	return keys
 }

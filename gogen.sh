@@ -3,6 +3,7 @@
 pkgs=(
     "collect/map.go"
     "collect/set.go"
+    "collect/list.go"
 )
 
 for p in "${pkgs[@]}"; do

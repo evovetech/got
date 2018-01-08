@@ -72,7 +72,7 @@ func (n *node) Populate(g *Graph) error {
 
 	n.populated = true
 	var errors []error
-	for p := range n.parents {
+	for _, p := range n.parents {
 		if pn, _ := g.GetOrAdd(p); pn != nil {
 			if err := pn.WithChild(n).AddTo(g); err != nil {
 				n.populated = false

@@ -29,8 +29,12 @@ var (
 
 type Info struct {
 	sha     types.Sha
-	tree    string
-	parents collect.ShaSet
+	tree    types.Sha
+	parents collect.ShaList
+}
+
+func NewInfoFromRef(ref git.Ref) *Info {
+	return NewInfo(types.Sha(ref.Commit.Full))
 }
 
 func NewInfo(sha types.Sha) (info *Info) {
@@ -39,14 +43,61 @@ func NewInfo(sha types.Sha) (info *Info) {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
-				getInfo().tree = match[2]
+				getInfo().tree = types.Sha(match[2])
 			case "parent":
-				getInfo().parents.Add(types.Sha(match[2]))
+				getInfo().parents.Append(types.Sha(match[2]))
 			}
 		}
 		return nil
 	})
 	return
+}
+
+func (info *Info) Sha() types.Sha {
+	return info.sha
+}
+
+func (info *Info) Tree() types.Sha {
+	return info.tree
+}
+
+func (info *Info) Parents() collect.ShaList {
+	return info.parents
+}
+
+func (info *Info) FirstParent() *Info {
+	if len(info.parents) == 0 {
+		return nil
+	}
+	return NewInfo(info.parents[0])
+}
+
+type InfoGetter func() (*Info, bool)
+
+func NextParentGetter(refs ...git.Ref) InfoGetter {
+	var size = len(refs)
+	var commits = make([]*Info, size)
+	for i, ref := range refs {
+		commits[i] = NewInfoFromRef(ref)
+	}
+	var i int
+	return func() (*Info, bool) {
+		return getParentInfo(&i, &commits)
+	}
+}
+
+func FindForkCommit(refs ...git.Ref) (*Info, bool) {
+	var commits collect.ShaCounterSet
+	var nextParent = NextParentGetter(refs...)
+	for {
+		if next, ok := nextParent(); ok {
+			if n := commits.Increment(next.Sha()); n > 1 {
+				return next, true
+			}
+		} else {
+			return nil, false
+		}
+	}
 }
 
 func infoGetter(ptr **Info, sha types.Sha) func() *Info {
@@ -56,5 +107,23 @@ func infoGetter(ptr **Info, sha types.Sha) func() *Info {
 			*ptr = info
 		}
 		return
+	}
+}
+
+func getParentInfo(iPtr *int, commitsPtr *[]*Info) (*Info, bool) {
+	i, commits := *iPtr, *commitsPtr
+	var size int
+	if size = len(commits); size == 0 {
+		return nil, false
+	}
+
+	i = i % size
+	if c := commits[i]; c == nil {
+		*commitsPtr = append(commits[:i], commits[i+1:]...)
+		return getParentInfo(iPtr, commitsPtr)
+	} else {
+		commits[i] = c.FirstParent()
+		*iPtr = i + 1
+		return c, true
 	}
 }
