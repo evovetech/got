@@ -17,7 +17,6 @@
 package play
 
 import (
-	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/commit"
 	"github.com/evovetech/got/got/merge"
 	"github.com/evovetech/got/log"
@@ -55,24 +54,6 @@ func (m *merger) parse(a []string) (err error) {
 	}
 	m.Merger, err = merge.NewMerger(m.args)
 	return
-}
-
-type NextCommit func() *commit.Info
-
-func newNextCommit(refs ...git.Ref) NextCommit {
-	var size = len(refs)
-	var commits = make([]*commit.Info, size)
-	for i, ref := range refs {
-		commits[i] = commit.NewInfoFromRef(ref)
-	}
-	var i int
-	return func() *commit.Info {
-		c := commits[i]
-		next := c.FirstParent()
-		commits[i] = next
-		i = (i + 1) % size
-		return next
-	}
 }
 
 func (m *merger) run() error {
