@@ -74,6 +74,12 @@ func (info *Info) FirstParent() *Info {
 
 type InfoGetter func() (*Info, bool)
 
+type Group []*List
+type List struct {
+	info *Info
+	next *List
+}
+
 func NextParentGetter(refs ...git.Ref) InfoGetter {
 	var size = len(refs)
 	var commits = make([]*Info, size)
