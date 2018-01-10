@@ -1,15 +1,15 @@
 package types
 
 import (
-	"strings"
 	"github.com/evovetech/got/types"
+	"strings"
 )
 
 type Sha = types.Sha
 type Type uint8
 
 const (
-	None   Type = iota
+	None Type = iota
 	Commit
 	Tree
 	Blob
