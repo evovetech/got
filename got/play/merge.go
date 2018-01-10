@@ -60,6 +60,7 @@ func (m *merger) run() error {
 	log.Printf("merge: %s", m)
 	if fork, ok := commit.FindForkCommit(m.HeadRef, m.MergeRef); ok {
 		log.Printf("fork: %s", fork.Sha())
+		log.Printf("tree: %s", fork.Dir())
 	}
 
 	//g := commit.NewGraph()

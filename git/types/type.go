@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/evovetech/got/types"
 	"strings"
 )
@@ -36,4 +37,8 @@ func Parse(t string) Type {
 
 func (t Type) String() string {
 	return typeStrings[t]
+}
+
+func (t Type) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
 }

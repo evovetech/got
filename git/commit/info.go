@@ -18,7 +18,9 @@ package commit
 
 import (
 	"github.com/evovetech/got/collect"
+	"github.com/evovetech/got/file"
 	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/git/tree"
 	"github.com/evovetech/got/types"
 	"regexp"
 )
@@ -31,6 +33,8 @@ type Info struct {
 	sha     types.Sha
 	tree    types.Sha
 	parents collect.ShaList
+
+	dir file.Dir
 }
 
 func NewInfoFromRef(ref git.Ref) *Info {
@@ -50,6 +54,14 @@ func NewInfo(sha types.Sha) (info *Info) {
 		}
 		return nil
 	})
+	return
+}
+
+func (info *Info) Dir() (dir file.Dir) {
+	if dir = info.dir; dir == nil {
+		dir = tree.ParseTree(info.tree)
+		info.dir = dir
+	}
 	return
 }
 
