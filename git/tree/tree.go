@@ -1,11 +1,8 @@
 package tree
 
 import (
-	"github.com/evovetech/got/file"
-	"github.com/evovetech/got/git"
+	"fmt"
 	"github.com/evovetech/got/git/types"
-	"github.com/evovetech/got/log"
-	"github.com/evovetech/got/util"
 	"regexp"
 )
 
@@ -13,30 +10,33 @@ var (
 	reTreeLine = regexp.MustCompile("^(\\d+) (\\w+) (\\w+)\\t(.*)$")
 )
 
-type Entry struct {
-	Mode string
-	Kind types.Type
-	Sha  types.Sha
-	Path file.Path
+const treeFormat = `{
+  sha: "%s",
+  list: %s,
+}
+`
+
+type Tree struct {
+	sha  types.Sha
+	list EntryList
 }
 
-func ParseTree(sha types.Sha) file.Dir {
-	dir := file.NewRoot()
-	git.Command("ls-tree", sha.String()).ForEachLine(func(line string) error {
-		if match := reTreeLine.FindStringSubmatch(line); match != nil {
-			entry := newEntry(match)
-			log.Println(util.String(entry))
-		}
-		return nil
-	})
-	return dir
+func NewTree(sha string) *Tree {
+	return &Tree{sha: types.Sha(sha)}
 }
 
-func newEntry(match []string) *Entry {
-	return &Entry{
-		Mode: match[1],
-		Kind: types.Parse(match[2]),
-		Sha:  types.Sha(match[3]),
-		Path: file.GetPath(match[4]),
+func (t Tree) Sha() types.Sha {
+	return t.sha
+}
+
+func (t Tree) String() string {
+	return fmt.Sprintf(treeFormat, t.Sha(), t.List())
+}
+
+func (t Tree) List() (l EntryList) {
+	if l = t.list; l == nil {
+		l = Ls(t.sha)
+		t.list = l
 	}
+	return
 }

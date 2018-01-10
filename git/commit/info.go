@@ -31,7 +31,7 @@ var (
 
 type Info struct {
 	sha     types.Sha
-	tree    types.Sha
+	tree    tree.Tree
 	parents collect.ShaList
 
 	dir file.Dir
@@ -47,7 +47,7 @@ func NewInfo(sha types.Sha) (info *Info) {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
-				getInfo().tree = types.Sha(match[2])
+				getInfo().tree = *tree.NewTree(match[2])
 			case "parent":
 				getInfo().parents.Append(types.Sha(match[2]))
 			}
@@ -57,19 +57,11 @@ func NewInfo(sha types.Sha) (info *Info) {
 	return
 }
 
-func (info *Info) Dir() (dir file.Dir) {
-	if dir = info.dir; dir == nil {
-		dir = tree.ParseTree(info.tree)
-		info.dir = dir
-	}
-	return
-}
-
 func (info *Info) Sha() types.Sha {
 	return info.sha
 }
 
-func (info *Info) Tree() types.Sha {
+func (info *Info) Tree() tree.Tree {
 	return info.tree
 }
 
