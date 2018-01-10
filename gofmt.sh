@@ -3,6 +3,7 @@
 paths=(
     "cmd"
     "collect"
+    "file"
     "git"
     "got"
     "log"

@@ -17,8 +17,8 @@
 package mv
 
 import (
+	"github.com/evovetech/got/file"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/got/merge/mv/file"
 )
 
 type Rename struct {
