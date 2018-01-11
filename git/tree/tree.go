@@ -16,33 +16,37 @@ const treeFormat = `{
 }
 `
 
-type Tree struct {
-	*object.Object
+type Tree interface {
+	object.Object
+
+	List() EntryList
+}
+
+type tree struct {
+	object.Object
 
 	list EntryList
 }
 
-func New(id object.Id) *Tree {
-	t := &Tree{
+func New(id object.Id) Tree {
+	t := &tree{
 		Object: object.NewTree(id),
 	}
-	t.SetInitFunc(t.init)
+	t.SetInitFunc(func() {
+		t.list = Ls(t.Id())
+	})
 	return t
 }
 
-func (t *Tree) Init() *Tree {
-	t.Object.Init()
-	return t
+func (t *tree) List() (l EntryList) {
+	return t.init().list
 }
 
-func (t *Tree) List() (l EntryList) {
-	return t.Init().list
-}
-
-func (t *Tree) String() string {
+func (t *tree) String() string {
 	return fmt.Sprintf(treeFormat, t.Id(), t.List())
 }
 
-func (t *Tree) init() {
-	t.list = Ls(t.Id())
+func (t *tree) init() *tree {
+	t.Object.Init()
+	return t
 }

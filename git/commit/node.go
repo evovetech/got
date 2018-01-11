@@ -31,11 +31,11 @@ type Node interface {
 	Populate(*Graph) error
 
 	// private
-	info() *Commit
+	info() Commit
 }
 
 type node struct {
-	*Commit
+	Commit
 
 	populated bool
 }
@@ -85,7 +85,7 @@ func (n *node) Populate(g *Graph) error {
 	return util.CompositeError(errors)
 }
 
-func (n *node) info() *Commit {
+func (n *node) info() Commit {
 	return n.Commit
 }
 

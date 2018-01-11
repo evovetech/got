@@ -6,17 +6,19 @@ import (
 )
 
 type Entry struct {
+	object.Object
+
 	Mode string
-	Kind object.Kind
-	Sha  object.Id
 	Path file.Path
 }
 
 func newEntry(match []string) Entry {
 	return Entry{
+		Object: object.New(
+			object.Id(match[3]),
+			object.Parse(match[2]),
+		),
 		Mode: match[1],
-		Kind: object.Parse(match[2]),
-		Sha:  object.Id(match[3]),
 		Path: file.GetPath(match[4]),
 	}
 }

@@ -11,33 +11,40 @@ var (
 	reCommitLine = regexp.MustCompile("^(\\w+)\\s+(.*)$")
 )
 
-type Commit struct {
-	*object.Object
+type Commit interface {
+	object.Object
 
-	tree    *tree.Tree
+	Tree() tree.Tree
+	Parents() *List
+}
+
+type commit struct {
+	object.Object
+
+	tree    tree.Tree
 	parents List
 }
 
-func New(id object.Id) *Commit {
-	c := &Commit{Object: object.NewCommit(id)}
-	c.SetInitFunc(c.init)
+func New(id object.Id) Commit {
+	c := &commit{Object: object.NewCommit(id)}
+	c.SetInitFunc(c.populate)
 	return c
 }
 
-func (c *Commit) Init() *Commit {
+func (c *commit) Tree() tree.Tree {
+	return c.init().tree
+}
+
+func (c *commit) Parents() *List {
+	return &c.init().parents
+}
+
+func (c *commit) init() *commit {
 	c.Object.Init()
 	return c
 }
 
-func (c *Commit) Tree() *tree.Tree {
-	return c.Init().tree
-}
-
-func (c *Commit) Parents() *List {
-	return &c.Init().parents
-}
-
-func (c *Commit) init() {
+func (c *commit) populate() {
 	git.Command("cat-file", "-p", c.Id().String()).ForEachLine(func(line string) error {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {

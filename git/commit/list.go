@@ -1,11 +1,11 @@
 package commit
 
 type List struct {
-	value *Commit
+	value Commit
 	next  *List
 }
 
-func (list *List) Append(c *Commit) bool {
+func (list *List) Append(c Commit) bool {
 	if l := list.Last(); l != nil {
 		if l.value == nil {
 			l.value = c
@@ -17,7 +17,7 @@ func (list *List) Append(c *Commit) bool {
 	return false
 }
 
-func (list *List) Value() *Commit {
+func (list *List) Value() Commit {
 	if list == nil {
 		return nil
 	}
