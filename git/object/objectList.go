@@ -2,12 +2,12 @@ package object
 
 import "github.com/evovetech/got/util"
 
-type ObjectList []Object
+type List []Object
 
-func (list *ObjectList) Append(obj Object) {
+func (list *List) Append(obj Object) {
 	*list = append(*list, obj)
 }
 
-func (list ObjectList) String() string {
+func (list List) String() string {
 	return util.String(list)
 }

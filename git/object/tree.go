@@ -19,7 +19,7 @@ const treeFormat = `{
 type tree struct {
 	Object
 
-	list ObjectList
+	list List
 }
 
 func NewTree(id types.Id) Tree {
@@ -32,7 +32,7 @@ func NewTree(id types.Id) Tree {
 	return t
 }
 
-func (t *tree) List() (l ObjectList) {
+func (t *tree) List() (l List) {
 	return t.init().list
 }
 

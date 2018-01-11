@@ -24,5 +24,5 @@ type Commit interface {
 type Tree interface {
 	Object
 
-	List() ObjectList
+	List() List
 }
