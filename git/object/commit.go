@@ -17,7 +17,7 @@ type commit struct {
 }
 
 func NewCommit(id Id) Commit {
-	c := &commit{Object: New(id, git.Commit)}
+	c := &commit{Object: New(id, CommitType)}
 	c.SetInitFunc(c.populate)
 	return c
 }

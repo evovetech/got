@@ -3,19 +3,18 @@ package object
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/evovetech/got/git"
 	"sync"
 )
 
 type object struct {
 	id   Id
-	kind git.Type
+	kind Type
 
 	once     sync.Once
 	initFunc func()
 }
 
-func New(id Id, kind git.Type) Object {
+func New(id Id, kind Type) Object {
 	return &object{id: id, kind: kind}
 }
 
@@ -23,7 +22,7 @@ func (o *object) Id() Id {
 	return o.id
 }
 
-func (o *object) Type() git.Type {
+func (o *object) Type() Type {
 	return o.kind
 }
 

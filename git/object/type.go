@@ -1,4 +1,4 @@
-package git
+package object
 
 import (
 	"encoding/json"
@@ -10,11 +10,11 @@ type (
 )
 
 const (
-	None Type = iota
-	Commit
-	Tree
-	Blob
-	Tag
+	NoneType Type = iota
+	CommitType
+	TreeType
+	BlobType
+	TagType
 )
 
 var typeStrings = []string{
@@ -32,7 +32,7 @@ func ParseType(t string) Type {
 			return Type(i)
 		}
 	}
-	return None
+	return NoneType
 }
 
 func (t Type) String() string {
