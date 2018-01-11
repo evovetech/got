@@ -27,7 +27,7 @@ func NewTree(id types.Id) Tree {
 		Object: New(id, types.Tree),
 	}
 	t.SetInitFunc(func() {
-		t.list = Ls(t.Id())
+		t.list = LsTree(t.Id())
 	})
 	return t
 }
