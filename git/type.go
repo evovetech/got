@@ -1,13 +1,11 @@
-package types
+package git
 
 import (
 	"encoding/json"
-	"github.com/evovetech/got/types"
 	"strings"
 )
 
 type (
-	Id   = types.Sha
 	Type uint8
 )
 
@@ -27,7 +25,7 @@ var typeStrings = []string{
 	"tag",    /* OBJ_TAG = 4 */
 }
 
-func Parse(t string) Type {
+func ParseType(t string) Type {
 	t = strings.ToLower(t)
 	for i, s := range typeStrings {
 		if s == t {

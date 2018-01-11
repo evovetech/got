@@ -2,7 +2,6 @@ package object
 
 import (
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/types"
 	"regexp"
 )
 
@@ -17,8 +16,8 @@ type commit struct {
 	parents CommitList
 }
 
-func NewCommit(id types.Id) Commit {
-	c := &commit{Object: New(id, types.Commit)}
+func NewCommit(id Id) Commit {
+	c := &commit{Object: New(id, git.Commit)}
 	c.SetInitFunc(c.populate)
 	return c
 }
@@ -41,9 +40,9 @@ func (c *commit) populate() {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
-				c.tree = NewTree(types.Id(match[2]))
+				c.tree = NewTree(Id(match[2]))
 			case "parent":
-				p := NewCommit(types.Id(match[2]))
+				p := NewCommit(Id(match[2]))
 				c.parents.Append(p)
 			}
 		}

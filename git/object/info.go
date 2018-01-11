@@ -19,7 +19,6 @@ package object
 import (
 	"github.com/evovetech/got/collect"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/types"
 )
 
 type Getter func() (Commit, bool)
@@ -28,7 +27,7 @@ func NextParentGetter(refs ...git.Ref) Getter {
 	var size = len(refs)
 	var commits = make([]Commit, size)
 	for i, ref := range refs {
-		commits[i] = NewCommit(types.Id(ref.Commit.Full))
+		commits[i] = NewCommit(Id(ref.Commit.Full))
 	}
 	var i int
 	return func() (Commit, bool) {

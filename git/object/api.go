@@ -1,12 +1,15 @@
 package object
 
 import (
-	"github.com/evovetech/got/git/types"
+	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/types"
 )
 
+type Id = types.Sha
+
 type Object interface {
-	Id() types.Id
-	Type() types.Type
+	Id() Id
+	Type() git.Type
 	String() string
 	MarshalJSON() ([]byte, error)
 

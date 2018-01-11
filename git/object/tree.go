@@ -2,7 +2,7 @@ package object
 
 import (
 	"fmt"
-	"github.com/evovetech/got/git/types"
+	"github.com/evovetech/got/git"
 	"regexp"
 )
 
@@ -22,9 +22,9 @@ type tree struct {
 	list List
 }
 
-func NewTree(id types.Id) Tree {
+func NewTree(id Id) Tree {
 	t := &tree{
-		Object: New(id, types.Tree),
+		Object: New(id, git.Tree),
 	}
 	t.SetInitFunc(func() {
 		t.list = LsTree(t.Id())
