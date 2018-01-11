@@ -8,6 +8,7 @@ type Object interface {
 	Id() types.Id
 	Type() types.Type
 	String() string
+	MarshalJSON() ([]byte, error)
 
 	SetInitFunc(func())
 	Init()

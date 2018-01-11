@@ -1,6 +1,7 @@
 package object
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/types"
@@ -41,6 +42,10 @@ func (o *object) Type() types.Type {
 
 func (o *object) String() string {
 	return fmt.Sprintf("%s<%s>", o.kind, o.id)
+}
+
+func (o *object) MarshalJSON() ([]byte, error) {
+	return json.Marshal(o.String())
 }
 
 func (o *object) SetInitFunc(f func()) {
