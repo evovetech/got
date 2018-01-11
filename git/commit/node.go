@@ -31,24 +31,25 @@ type Node interface {
 	Populate(*Graph) error
 
 	// private
-	info() Info
+	info() *Commit
 }
 
 type node struct {
-	Info
+	*Commit
+
 	populated bool
 }
 
 func NewNode(commit types.Sha) (n Node, ok bool) {
-	if info := NewInfo(commit); info != nil {
-		n, ok = &node{Info: *info}, true
+	if info := New(commit); info != nil {
+		n, ok = &node{Commit: info}, true
 	}
 	//log.Printf("NewNode(%s) -> (ok=%v, n=%s)", commit, ok, n)
 	return
 }
 
 func (n *node) ID() goraph.ID {
-	return n.sha
+	return n.Id()
 }
 
 func (n *node) WithParent(parent Node) Edge {
@@ -72,8 +73,9 @@ func (n *node) Populate(g *Graph) error {
 
 	n.populated = true
 	var errors []error
-	for _, p := range n.parents {
-		if pn, _ := g.GetOrAdd(p); pn != nil {
+	for l := n.Parents(); l != nil; {
+		p := l.Value()
+		if pn, _ := g.GetOrAdd(p.Id()); pn != nil {
 			if err := pn.WithChild(n).AddTo(g); err != nil {
 				n.populated = false
 				errors = append(errors, err)
@@ -83,10 +85,10 @@ func (n *node) Populate(g *Graph) error {
 	return util.CompositeError(errors)
 }
 
-func (n *node) info() Info {
-	return n.Info
+func (n *node) info() *Commit {
+	return n.Commit
 }
 
 func (n node) String() string {
-	return n.sha.String()
+	return n.Id().String()
 }

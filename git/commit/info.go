@@ -18,91 +18,31 @@ package commit
 
 import (
 	"github.com/evovetech/got/collect"
-	"github.com/evovetech/got/file"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/tree"
-	"github.com/evovetech/got/types"
-	"regexp"
+	"github.com/evovetech/got/git/object"
 )
 
-var (
-	reCommitLine = regexp.MustCompile("^(\\w+)\\s+(.*)$")
-)
+type Getter func() (*Commit, bool)
 
-type Info struct {
-	sha     types.Sha
-	tree    tree.Tree
-	parents collect.ShaList
-
-	dir file.Dir
-}
-
-func NewInfoFromRef(ref git.Ref) *Info {
-	return NewInfo(types.Sha(ref.Commit.Full))
-}
-
-func NewInfo(sha types.Sha) (info *Info) {
-	getInfo := infoGetter(&info, sha)
-	git.Command("cat-file", "-p", sha.String()).ForEachLine(func(line string) error {
-		if match := reCommitLine.FindStringSubmatch(line); match != nil {
-			switch match[1] {
-			case "tree":
-				getInfo().tree = *tree.NewTree(match[2])
-			case "parent":
-				getInfo().parents.Append(types.Sha(match[2]))
-			}
-		}
-		return nil
-	})
-	return
-}
-
-func (info *Info) Sha() types.Sha {
-	return info.sha
-}
-
-func (info *Info) Tree() tree.Tree {
-	return info.tree
-}
-
-func (info *Info) Parents() collect.ShaList {
-	return info.parents
-}
-
-func (info *Info) FirstParent() *Info {
-	if len(info.parents) == 0 {
-		return nil
-	}
-	return NewInfo(info.parents[0])
-}
-
-type InfoGetter func() (*Info, bool)
-
-type Group []*List
-type List struct {
-	info *Info
-	next *List
-}
-
-func NextParentGetter(refs ...git.Ref) InfoGetter {
+func NextParentGetter(refs ...git.Ref) Getter {
 	var size = len(refs)
-	var commits = make([]*Info, size)
+	var commits = make([]*Commit, size)
 	for i, ref := range refs {
-		commits[i] = NewInfoFromRef(ref)
+		commits[i] = New(object.Id(ref.Commit.Full))
 	}
 	var i int
-	return func() (*Info, bool) {
-		return getParentInfo(&i, &commits)
+	return func() (*Commit, bool) {
+		return getCommit(&i, &commits)
 	}
 }
 
-func FindForkCommit(refs ...git.Ref) (*Info, bool) {
+func FindForkCommit(refs ...git.Ref) (*Commit, bool) {
 	var commits collect.ShaCounterSet
 	var nextParent = NextParentGetter(refs...)
 	var target = len(refs)
 	for {
 		if next, ok := nextParent(); ok {
-			if n := commits.Increment(next.Sha()); n >= target {
+			if n := commits.Increment(next.Id()); n >= target {
 				return next, true
 			}
 		} else {
@@ -111,17 +51,7 @@ func FindForkCommit(refs ...git.Ref) (*Info, bool) {
 	}
 }
 
-func infoGetter(ptr **Info, sha types.Sha) func() *Info {
-	return func() (info *Info) {
-		if info = *ptr; info == nil {
-			info = &Info{sha: sha}
-			*ptr = info
-		}
-		return
-	}
-}
-
-func getParentInfo(iPtr *int, commitsPtr *[]*Info) (*Info, bool) {
+func getCommit(iPtr *int, commitsPtr *[]*Commit) (*Commit, bool) {
 	i, commits := *iPtr, *commitsPtr
 	var size int
 	if size = len(commits); size == 0 {
@@ -131,9 +61,9 @@ func getParentInfo(iPtr *int, commitsPtr *[]*Info) (*Info, bool) {
 	i = i % size
 	if c := commits[i]; c == nil {
 		*commitsPtr = append(commits[:i], commits[i+1:]...)
-		return getParentInfo(iPtr, commitsPtr)
+		return getCommit(iPtr, commitsPtr)
 	} else {
-		commits[i] = c.FirstParent()
+		commits[i] = c.Parents().Value()
 		*iPtr = i + 1
 		return c, true
 	}

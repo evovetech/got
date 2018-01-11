@@ -61,7 +61,8 @@ func (g *Graph) Populate(commit string, num int) (error, bool) {
 		if err := n.Populate(g); err != nil {
 			errors = append(errors, err)
 		} else {
-			for _, p := range n.info().parents {
+			for l := n.info().Parents(); l != nil; {
+				p := l.value
 				if err, _ := g.Populate(p.String(), num-1); err != nil {
 					errors = append(errors, err)
 				}

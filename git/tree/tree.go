@@ -2,7 +2,7 @@ package tree
 
 import (
 	"fmt"
-	"github.com/evovetech/got/git/types"
+	"github.com/evovetech/got/git/object"
 	"regexp"
 )
 
@@ -11,32 +11,38 @@ var (
 )
 
 const treeFormat = `{
-  sha: "%s",
+  id: "%s",
   list: %s,
 }
 `
 
 type Tree struct {
-	sha  types.Sha
+	*object.Object
+
 	list EntryList
 }
 
-func NewTree(sha string) *Tree {
-	return &Tree{sha: types.Sha(sha)}
-}
-
-func (t Tree) Sha() types.Sha {
-	return t.sha
-}
-
-func (t Tree) String() string {
-	return fmt.Sprintf(treeFormat, t.Sha(), t.List())
-}
-
-func (t Tree) List() (l EntryList) {
-	if l = t.list; l == nil {
-		l = Ls(t.sha)
-		t.list = l
+func New(id object.Id) *Tree {
+	t := &Tree{
+		Object: object.NewTree(id),
 	}
-	return
+	t.SetInitFunc(t.init)
+	return t
+}
+
+func (t *Tree) Init() *Tree {
+	t.Object.Init()
+	return t
+}
+
+func (t *Tree) List() (l EntryList) {
+	return t.Init().list
+}
+
+func (t *Tree) String() string {
+	return fmt.Sprintf(treeFormat, t.Id(), t.List())
+}
+
+func (t *Tree) init() {
+	t.list = Ls(t.Id())
 }

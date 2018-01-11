@@ -1,13 +1,13 @@
-package types
+package object
 
 import (
 	"encoding/json"
-	"github.com/evovetech/got/types"
 	"strings"
 )
 
-type Sha = types.Sha
-type Type uint8
+type (
+	Type uint8
+)
 
 const (
 	None Type = iota

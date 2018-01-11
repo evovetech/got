@@ -59,7 +59,7 @@ func (m *merger) parse(a []string) (err error) {
 func (m *merger) run() error {
 	log.Printf("merge: %s", m)
 	if fork, ok := commit.FindForkCommit(m.HeadRef, m.MergeRef); ok {
-		log.Printf("fork: %s", fork.Sha())
+		log.Printf("fork: %s", fork.Id())
 		log.Printf("tree: %s", fork.Tree())
 	}
 
