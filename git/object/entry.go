@@ -1,14 +1,12 @@
-package tree
+package object
 
 import (
 	"github.com/evovetech/got/file"
-	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/object"
 	"github.com/evovetech/got/git/types"
 )
 
 type Entry struct {
-	git.Object
+	Object
 
 	Mode string
 	Path file.Path
@@ -16,7 +14,7 @@ type Entry struct {
 
 func newEntry(match []string) Entry {
 	return Entry{
-		Object: object.New(
+		Object: New(
 			types.Id(match[3]),
 			types.Parse(match[2]),
 		),

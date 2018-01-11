@@ -1,4 +1,4 @@
-package git
+package object
 
 import (
 	"github.com/evovetech/got/git/types"

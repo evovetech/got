@@ -3,7 +3,6 @@ package object
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/types"
 	"sync"
 )
@@ -16,20 +15,8 @@ type object struct {
 	initFunc func()
 }
 
-func New(id types.Id, kind types.Type) git.Object {
+func New(id types.Id, kind types.Type) Object {
 	return &object{id: id, kind: kind}
-}
-
-func NewTree(id types.Id) git.Object {
-	return New(id, types.Tree)
-}
-
-func NewCommit(id types.Id) git.Object {
-	return New(id, types.Commit)
-}
-
-func NewBlob(id types.Id) git.Object {
-	return New(id, types.Blob)
 }
 
 func (o *object) Id() types.Id {

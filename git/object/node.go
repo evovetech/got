@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package commit
+package object
 
 import (
-	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/types"
 	"github.com/evovetech/got/util"
 	"gopkg.in/gyuho/goraph.v2"
@@ -32,17 +31,17 @@ type Node interface {
 	Populate(*Graph) error
 
 	// private
-	info() git.Commit
+	info() Commit
 }
 
 type node struct {
-	git.Commit
+	Commit
 
 	populated bool
 }
 
 func NewNode(commit types.Sha) (n Node, ok bool) {
-	if info := New(commit); info != nil {
+	if info := NewCommit(commit); info != nil {
 		n, ok = &node{Commit: info}, true
 	}
 	//log.Printf("NewNode(%s) -> (ok=%v, n=%s)", commit, ok, n)
@@ -86,7 +85,7 @@ func (n *node) Populate(g *Graph) error {
 	return util.CompositeError(errors)
 }
 
-func (n *node) info() git.Commit {
+func (n *node) info() Commit {
 	return n.Commit
 }
 

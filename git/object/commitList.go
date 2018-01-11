@@ -1,4 +1,4 @@
-package git
+package object
 
 type CommitList struct {
 	value Commit

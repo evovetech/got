@@ -17,7 +17,7 @@
 package play
 
 import (
-	"github.com/evovetech/got/git/commit"
+	"github.com/evovetech/got/git/object"
 	"github.com/evovetech/got/got/merge"
 	"github.com/evovetech/got/log"
 	"github.com/spf13/cobra"
@@ -58,7 +58,7 @@ func (m *merger) parse(a []string) (err error) {
 
 func (m *merger) run() error {
 	log.Printf("merge: %s", m)
-	if fork, ok := commit.FindForkCommit(m.HeadRef, m.MergeRef); ok {
+	if fork, ok := object.FindForkCommit(m.HeadRef, m.MergeRef); ok {
 		log.Printf("fork: %s", fork.Id())
 		log.Printf("tree: %s", fork.Tree())
 	}

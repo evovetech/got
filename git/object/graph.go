@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package commit
+package object
 
 import (
 	"github.com/evovetech/got/types"
