@@ -59,9 +59,8 @@ func (c *Cmd) Run() error {
 	return Run(c.Build())
 }
 
-func (c *Cmd) OutputBytes() []byte {
-	b, _ := OutputBytes(c.Build())
-	return b
+func (c *Cmd) OutputBytes() ([]byte, error) {
+	return OutputBytes(c.Build())
 }
 
 func (c *Cmd) Output() (string, error) {

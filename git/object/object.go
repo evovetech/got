@@ -18,6 +18,10 @@ func New(id Id, kind Type) Object {
 	return &object{id: id, kind: kind}
 }
 
+func Parse(id Id, kind Type) Object {
+	return kind.New(id)
+}
+
 func (o *object) Id() Id {
 	return o.id
 }
@@ -27,7 +31,7 @@ func (o *object) Type() Type {
 }
 
 func (o *object) String() string {
-	return fmt.Sprintf("%s<%s>", o.kind, o.id)
+	return fmt.Sprintf("%s { %s }", o.kind, o.id)
 }
 
 func (o *object) MarshalJSON() ([]byte, error) {

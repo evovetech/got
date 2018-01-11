@@ -35,10 +35,44 @@ func ParseType(t string) Type {
 	return NoneType
 }
 
+func (t Type) Creator() Creator {
+	switch t {
+	case CommitType:
+		return newCommit
+	case TreeType:
+		return newTree
+	case BlobType:
+		return newBlob
+	case TagType:
+		// TODO:
+	}
+	return newObject
+}
+
+func (t Type) New(id Id) Object {
+	return t.Creator()(id)
+}
+
 func (t Type) String() string {
 	return typeStrings[t]
 }
 
 func (t Type) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
+}
+
+func newObject(id Id) Object {
+	return New(id, NoneType)
+}
+
+func newCommit(id Id) Object {
+	return NewCommit(id)
+}
+
+func newTree(id Id) Object {
+	return NewTree(id)
+}
+
+func newBlob(id Id) Object {
+	return NewBlob(id)
 }

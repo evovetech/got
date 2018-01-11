@@ -28,3 +28,9 @@ type Tree interface {
 
 	List() List
 }
+
+type Blob interface {
+	Object
+
+	Contents() ([]byte, error)
+}
