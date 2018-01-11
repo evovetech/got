@@ -19,24 +19,24 @@ package commit
 import (
 	"github.com/evovetech/got/collect"
 	"github.com/evovetech/got/git"
-	"github.com/evovetech/got/git/object"
+	"github.com/evovetech/got/git/types"
 )
 
-type Getter func() (Commit, bool)
+type Getter func() (git.Commit, bool)
 
 func NextParentGetter(refs ...git.Ref) Getter {
 	var size = len(refs)
-	var commits = make([]Commit, size)
+	var commits = make([]git.Commit, size)
 	for i, ref := range refs {
-		commits[i] = New(object.Id(ref.Commit.Full))
+		commits[i] = New(types.Id(ref.Commit.Full))
 	}
 	var i int
-	return func() (Commit, bool) {
+	return func() (git.Commit, bool) {
 		return getCommit(&i, &commits)
 	}
 }
 
-func FindForkCommit(refs ...git.Ref) (Commit, bool) {
+func FindForkCommit(refs ...git.Ref) (git.Commit, bool) {
 	var commits collect.ShaCounterSet
 	var nextParent = NextParentGetter(refs...)
 	var target = len(refs)
@@ -51,7 +51,7 @@ func FindForkCommit(refs ...git.Ref) (Commit, bool) {
 	}
 }
 
-func getCommit(iPtr *int, commitsPtr *[]Commit) (Commit, bool) {
+func getCommit(iPtr *int, commitsPtr *[]git.Commit) (git.Commit, bool) {
 	i, commits := *iPtr, *commitsPtr
 	var size int
 	if size = len(commits); size == 0 {

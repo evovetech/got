@@ -1,37 +1,37 @@
-package commit
+package git
 
-type List struct {
+type CommitList struct {
 	value Commit
-	next  *List
+	next  *CommitList
 }
 
-func (list *List) Append(c Commit) bool {
+func (list *CommitList) Append(c Commit) bool {
 	if l := list.Last(); l != nil {
 		if l.value == nil {
 			l.value = c
 		} else {
-			l.next = &List{value: c}
+			l.next = &CommitList{value: c}
 		}
 		return true
 	}
 	return false
 }
 
-func (list *List) Value() Commit {
+func (list *CommitList) Value() Commit {
 	if list == nil {
 		return nil
 	}
 	return list.value
 }
 
-func (list *List) Next() *List {
+func (list *CommitList) Next() *CommitList {
 	if list == nil {
 		return nil
 	}
 	return list.next
 }
 
-func (list *List) Last() *List {
+func (list *CommitList) Last() *CommitList {
 	if list == nil {
 		return nil
 	}

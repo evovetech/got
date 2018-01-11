@@ -2,53 +2,40 @@ package object
 
 import (
 	"fmt"
-	"github.com/evovetech/got/types"
+	"github.com/evovetech/got/git"
+	"github.com/evovetech/got/git/types"
 	"sync"
 )
 
-type (
-	Id   = types.Sha
-	Kind = Type
-)
-
-type Object interface {
-	Id() Id
-	Kind() Kind
-	String() string
-
-	SetInitFunc(func())
-	Init()
-}
-
 type object struct {
-	id   Id
-	kind Kind
+	id   types.Id
+	kind types.Type
 
 	once     sync.Once
 	initFunc func()
 }
 
-func New(id Id, kind Kind) Object {
+func New(id types.Id, kind types.Type) git.Object {
 	return &object{id: id, kind: kind}
 }
 
-func NewTree(id Id) Object {
-	return New(id, Tree)
+func NewTree(id types.Id) git.Object {
+	return New(id, types.Tree)
 }
 
-func NewCommit(id Id) Object {
-	return New(id, Commit)
+func NewCommit(id types.Id) git.Object {
+	return New(id, types.Commit)
 }
 
-func NewBlob(id Id) Object {
-	return New(id, Blob)
+func NewBlob(id types.Id) git.Object {
+	return New(id, types.Blob)
 }
 
-func (o *object) Id() Id {
+func (o *object) Id() types.Id {
 	return o.id
 }
 
-func (o *object) Kind() Kind {
+func (o *object) Type() types.Type {
 	return o.kind
 }
 

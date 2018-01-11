@@ -2,7 +2,9 @@ package tree
 
 import (
 	"fmt"
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/object"
+	"github.com/evovetech/got/git/types"
 	"regexp"
 )
 
@@ -16,19 +18,13 @@ const treeFormat = `{
 }
 `
 
-type Tree interface {
-	object.Object
-
-	List() EntryList
-}
-
 type tree struct {
-	object.Object
+	git.Object
 
-	list EntryList
+	list git.ObjectList
 }
 
-func New(id object.Id) Tree {
+func New(id types.Id) git.Tree {
 	t := &tree{
 		Object: object.NewTree(id),
 	}
@@ -38,7 +34,7 @@ func New(id object.Id) Tree {
 	return t
 }
 
-func (t *tree) List() (l EntryList) {
+func (t *tree) List() (l git.ObjectList) {
 	return t.init().list
 }
 

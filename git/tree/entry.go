@@ -2,11 +2,13 @@ package tree
 
 import (
 	"github.com/evovetech/got/file"
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/object"
+	"github.com/evovetech/got/git/types"
 )
 
 type Entry struct {
-	object.Object
+	git.Object
 
 	Mode string
 	Path file.Path
@@ -15,8 +17,8 @@ type Entry struct {
 func newEntry(match []string) Entry {
 	return Entry{
 		Object: object.New(
-			object.Id(match[3]),
-			object.Parse(match[2]),
+			types.Id(match[3]),
+			types.Parse(match[2]),
 		),
 		Mode: match[1],
 		Path: file.GetPath(match[4]),

@@ -4,6 +4,7 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/git/object"
 	"github.com/evovetech/got/git/tree"
+	"github.com/evovetech/got/git/types"
 	"regexp"
 )
 
@@ -11,31 +12,24 @@ var (
 	reCommitLine = regexp.MustCompile("^(\\w+)\\s+(.*)$")
 )
 
-type Commit interface {
-	object.Object
-
-	Tree() tree.Tree
-	Parents() *List
-}
-
 type commit struct {
-	object.Object
+	git.Object
 
-	tree    tree.Tree
-	parents List
+	tree    git.Tree
+	parents git.CommitList
 }
 
-func New(id object.Id) Commit {
+func New(id types.Id) git.Commit {
 	c := &commit{Object: object.NewCommit(id)}
 	c.SetInitFunc(c.populate)
 	return c
 }
 
-func (c *commit) Tree() tree.Tree {
+func (c *commit) Tree() git.Tree {
 	return c.init().tree
 }
 
-func (c *commit) Parents() *List {
+func (c *commit) Parents() *git.CommitList {
 	return &c.init().parents
 }
 
@@ -49,9 +43,9 @@ func (c *commit) populate() {
 		if match := reCommitLine.FindStringSubmatch(line); match != nil {
 			switch match[1] {
 			case "tree":
-				c.tree = tree.New(object.Id(match[2]))
+				c.tree = tree.New(types.Id(match[2]))
 			case "parent":
-				p := New(object.Id(match[2]))
+				p := New(types.Id(match[2]))
 				c.parents.Append(p)
 			}
 		}

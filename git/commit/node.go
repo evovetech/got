@@ -17,6 +17,7 @@
 package commit
 
 import (
+	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/types"
 	"github.com/evovetech/got/util"
 	"gopkg.in/gyuho/goraph.v2"
@@ -31,11 +32,11 @@ type Node interface {
 	Populate(*Graph) error
 
 	// private
-	info() Commit
+	info() git.Commit
 }
 
 type node struct {
-	Commit
+	git.Commit
 
 	populated bool
 }
@@ -85,7 +86,7 @@ func (n *node) Populate(g *Graph) error {
 	return util.CompositeError(errors)
 }
 
-func (n *node) info() Commit {
+func (n *node) info() git.Commit {
 	return n.Commit
 }
 

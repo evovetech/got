@@ -1,11 +1,13 @@
-package object
+package types
 
 import (
 	"encoding/json"
+	"github.com/evovetech/got/types"
 	"strings"
 )
 
 type (
+	Id   = types.Sha
 	Type uint8
 )
 
