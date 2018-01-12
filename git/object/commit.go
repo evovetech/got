@@ -17,7 +17,7 @@ type commit struct {
 
 func NewCommit(id Id) Commit {
 	c := &commit{Object: New(id, CommitType)}
-	c.SetInitFunc(func() {
+	c.setInitFunc(func() {
 		c.tree, c.parents, _ = catCommit(id)
 	})
 	return c

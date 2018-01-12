@@ -9,11 +9,13 @@ type Id = types.Sha
 type Object interface {
 	Id() Id
 	Type() Type
+
+	Init()
 	String() string
 	MarshalJSON() ([]byte, error)
 
-	SetInitFunc(func())
-	Init()
+	// private
+	setInitFunc(func())
 }
 
 type Commit interface {

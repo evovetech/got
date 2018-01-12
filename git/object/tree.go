@@ -25,7 +25,7 @@ func NewTree(id Id) Tree {
 	t := &tree{
 		Object: New(id, TreeType),
 	}
-	t.SetInitFunc(func() {
+	t.setInitFunc(func() {
 		t.list = lsTree(t.Id())
 	})
 	return t

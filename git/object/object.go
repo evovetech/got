@@ -38,7 +38,7 @@ func (o *object) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.String())
 }
 
-func (o *object) SetInitFunc(f func()) {
+func (o *object) setInitFunc(f func()) {
 	if o.initFunc == nil {
 		o.initFunc = f
 	}

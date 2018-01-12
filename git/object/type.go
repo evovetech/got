@@ -10,7 +10,7 @@ type (
 )
 
 const (
-	NoneType Type = iota
+	NoneType   Type = iota
 	CommitType
 	TreeType
 	BlobType
@@ -35,22 +35,18 @@ func ParseType(t string) Type {
 	return NoneType
 }
 
-func (t Type) Creator() Creator {
+func (t Type) New(id Id) Object {
 	switch t {
 	case CommitType:
-		return newCommit
+		return NewCommit(id)
 	case TreeType:
-		return newTree
+		return NewTree(id)
 	case BlobType:
-		return newBlob
+		return NewBlob(id)
 	case TagType:
 		// TODO:
 	}
-	return newObject
-}
-
-func (t Type) New(id Id) Object {
-	return t.Creator()(id)
+	return New(id, NoneType)
 }
 
 func (t Type) String() string {
@@ -59,20 +55,4 @@ func (t Type) String() string {
 
 func (t Type) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
-}
-
-func newObject(id Id) Object {
-	return New(id, NoneType)
-}
-
-func newCommit(id Id) Object {
-	return NewCommit(id)
-}
-
-func newTree(id Id) Object {
-	return NewTree(id)
-}
-
-func newBlob(id Id) Object {
-	return NewBlob(id)
 }
