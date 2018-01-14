@@ -10,7 +10,7 @@ type (
 )
 
 const (
-	NoneType   Type = iota
+	NoneType Type = iota
 	CommitType
 	TreeType
 	BlobType
@@ -46,7 +46,7 @@ func (t Type) New(id Id) Object {
 	case TagType:
 		// TODO:
 	}
-	return New(id, NoneType)
+	return &object{id: id, kind: NoneType}
 }
 
 func (t Type) String() string {

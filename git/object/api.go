@@ -13,9 +13,6 @@ type Object interface {
 	Init()
 	String() string
 	MarshalJSON() ([]byte, error)
-
-	// private
-	setInitFunc(func())
 }
 
 type Commit interface {

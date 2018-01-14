@@ -13,7 +13,7 @@ type TreeEntry struct {
 
 func newTreeEntry(match []string) TreeEntry {
 	return TreeEntry{
-		Object: Parse(
+		Object: New(
 			Id(match[3]),
 			ParseType(match[2]),
 		),

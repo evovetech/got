@@ -15,10 +15,6 @@ type object struct {
 }
 
 func New(id Id, kind Type) Object {
-	return &object{id: id, kind: kind}
-}
-
-func Parse(id Id, kind Type) Object {
 	return kind.New(id)
 }
 
@@ -36,12 +32,6 @@ func (o *object) String() string {
 
 func (o *object) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.String())
-}
-
-func (o *object) setInitFunc(f func()) {
-	if o.initFunc == nil {
-		o.initFunc = f
-	}
 }
 
 func (o *object) Init() {

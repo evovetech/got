@@ -1,17 +1,18 @@
 package object
 
 type blob struct {
-	Object
+	object
 
 	data []byte
 	err  error
 }
 
 func NewBlob(id Id) Blob {
-	b := &blob{Object: New(id, BlobType)}
-	b.setInitFunc(func() {
+	b := new(blob)
+	b.id, b.kind = id, BlobType
+	b.initFunc = func() {
 		b.data, b.err = catBlob(id)
-	})
+	}
 	return b
 }
 

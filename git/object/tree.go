@@ -16,18 +16,17 @@ const treeFormat = `{
 `
 
 type tree struct {
-	Object
+	object
 
 	list List
 }
 
 func NewTree(id Id) Tree {
-	t := &tree{
-		Object: New(id, TreeType),
-	}
-	t.setInitFunc(func() {
+	t := new(tree)
+	t.id, t.kind = id, TreeType
+	t.initFunc = func() {
 		t.list = lsTree(t.Id())
-	})
+	}
 	return t
 }
 
@@ -40,6 +39,6 @@ func (t *tree) String() string {
 }
 
 func (t *tree) init() *tree {
-	t.Object.Init()
+	t.object.Init()
 	return t
 }

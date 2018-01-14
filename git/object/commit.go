@@ -9,17 +9,18 @@ var (
 )
 
 type commit struct {
-	Object
+	object
 
 	tree    Tree
 	parents CommitList
 }
 
 func NewCommit(id Id) Commit {
-	c := &commit{Object: New(id, CommitType)}
-	c.setInitFunc(func() {
+	c := new(commit)
+	c.id, c.kind = id, CommitType
+	c.initFunc = func() {
 		c.tree, c.parents, _ = catCommit(id)
-	})
+	}
 	return c
 }
 
@@ -32,6 +33,6 @@ func (c *commit) Parents() *CommitList {
 }
 
 func (c *commit) init() *commit {
-	c.Object.Init()
+	c.object.Init()
 	return c
 }
