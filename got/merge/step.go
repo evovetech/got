@@ -21,6 +21,7 @@ import (
 	"github.com/evovetech/got/git"
 	"github.com/evovetech/got/got/merge/mv"
 	"github.com/evovetech/got/got/resolve"
+	"github.com/evovetech/got/log"
 	"github.com/evovetech/got/util"
 )
 
@@ -38,7 +39,28 @@ func NewStep(branch *branchRef, target *branchRef, findRenames int) *Step {
 	}
 }
 
+func (s *Step) mergeCommitTree(tree string) (commit string, err error) {
+	ours := s.Branch
+	p1 := s.Branch.Ref.ShortSha()
+	p2 := s.Target.Ref.ShortSha()
+	commitCmd := git.Command("commit-tree", tree,
+		"-p", p1,
+		"-p", p2,
+		"-m", s.getMsg())
+	if commit, err = commitCmd.Output(); err == nil {
+		err = git.Command("update-ref", ours.Ref.Info.RefName, commit).Run()
+	}
+	return
+}
+
 func (s *Step) Run() error {
+	// COPY original branches
+	ours, theirs := *s.Branch, *s.Target
+	cp := *s
+	cp.Branch = &ours
+	cp.Target = &theirs
+
+	// try merge
 	if err := s.merge(); err != nil {
 		return err
 	}
@@ -46,11 +68,18 @@ func (s *Step) Run() error {
 	if m, ok := mv.GetFileMoves(); ok {
 		return s.commit()
 	} else {
-		return util.RunAll(
+		if err := util.RunAll(
 			m.Run,
 			s.merge,
 			s.commit,
-		)
+		); err != nil {
+			return err
+		}
+
+		tree := git.RevParse("HEAD").Short() + "^{tree}"
+		commit, err := cp.mergeCommitTree(tree)
+		log.Printf("commit: %s", commit)
+		return err
 	}
 }
 
