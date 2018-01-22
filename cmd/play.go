@@ -22,16 +22,17 @@ import (
 )
 
 var pl = struct {
-	cmd     *cobra.Command
-	merge   *cobra.Command
-	counter *cobra.Command
+	cmd *cobra.Command
+	sub map[string]*cobra.Command
 }{
 	cmd: &cobra.Command{
 		Use:   "play",
 		Short: "Play",
 	},
-	merge:   play.MergeCmd(),
-	counter: play.CounterCmd(),
+	sub: map[string]*cobra.Command{
+		"merge":   play.MergeCmd(),
+		"counter": play.CounterCmd(),
+	},
 }
 
 func playCmd() *cobra.Command {
@@ -39,5 +40,7 @@ func playCmd() *cobra.Command {
 }
 
 func init() {
-	pl.cmd.AddCommand(pl.merge, pl.counter)
+	for _, v := range pl.sub {
+		pl.cmd.AddCommand(v)
+	}
 }
