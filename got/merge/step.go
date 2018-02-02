@@ -31,6 +31,10 @@ type Step struct {
 	FindRenames int
 }
 
+var (
+	movesEnabled =false
+)
+
 func NewStep(branch *branchRef, target *branchRef, findRenames int) *Step {
 	return &Step{
 		Branch:      branch,
@@ -63,6 +67,10 @@ func (s *Step) Run() error {
 	// try merge
 	if err := s.merge(); err != nil {
 		return err
+	}
+
+	if !movesEnabled {
+		return s.commit()
 	}
 
 	if m, ok := mv.GetFileMoves(); ok {
