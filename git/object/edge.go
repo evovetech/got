@@ -18,7 +18,7 @@ package object
 
 import (
 	"fmt"
-	"gopkg.in/gyuho/goraph.v2"
+	"github.com/gyuho/goraph"
 )
 
 type Edge interface {

@@ -19,7 +19,7 @@ package object
 import (
 	"github.com/evovetech/got/types"
 	"github.com/evovetech/got/util"
-	"gopkg.in/gyuho/goraph.v2"
+	"github.com/gyuho/goraph"
 )
 
 type Node interface {
