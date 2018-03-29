@@ -24,12 +24,14 @@ import (
 )
 
 type Args struct {
-	Strategy git.MergeStrategy
-	Branch   string
+	Strategy      git.MergeStrategy
+	FollowRenames bool
+	Branch        string
 }
 
 func (args *Args) Init(cmd *cobra.Command) {
 	args.Strategy.AddTo(cmd.Flags())
+	cmd.Flags().BoolVar(&args.FollowRenames, "followRenames", false, "follow renames (default false)")
 }
 
 func (args *Args) Parse(a []string) error {

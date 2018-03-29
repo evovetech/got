@@ -24,11 +24,15 @@ import (
 type Merger struct {
 	HeadRef  git.Ref
 	MergeRef git.Ref
-	Strategy git.MergeStrategy
+	Args     Args
 }
 
 func (m Merger) String() string {
 	return util.String(m)
+}
+
+func (m Merger) Strategy() git.MergeStrategy {
+	return m.Args.Strategy
 }
 
 func (m *Merger) Run() (RunStep, error) {

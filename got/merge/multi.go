@@ -111,7 +111,7 @@ func (m *multi) run(ours *branchRef, theirs *branchRef) error {
 	if commit, err = s1.MergeCommitTree("", git.THEIRS); err != nil {
 		return err
 	}
-	if m.Strategy == git.OURS {
+	if m.Strategy() == git.OURS {
 		if commit, err = s1.MergeCommitTree(commit, git.OURS); err != nil {
 			return err
 		}
@@ -128,10 +128,15 @@ func (m *multi) run(ours *branchRef, theirs *branchRef) error {
 	)
 }
 
+func (m *multi) Strategy() git.MergeStrategy {
+	return (*Merger)(m).Strategy()
+}
+
 func (m *multiStep) RunE(findRenames int) error {
+	followRenames := m.multi.Args.FollowRenames
 	return util.RunAll(
-		NewStep(m.ours, m.theirs, findRenames).Run,
-		NewStep(m.theirs, m.ours, findRenames).Run,
+		NewStep(m.ours, m.theirs, followRenames).Run,
+		NewStep(m.theirs, m.ours, followRenames).Run,
 		m.update,
 	)
 }

@@ -25,21 +25,19 @@ import (
 	"github.com/evovetech/got/util"
 )
 
+const DefaultFindRenamePercentage = 25
+
 type Step struct {
-	Branch      *branchRef
-	Target      *branchRef
-	FindRenames int
+	Branch        *branchRef
+	Target        *branchRef
+	FollowRenames bool
 }
 
-var (
-	movesEnabled =false
-)
-
-func NewStep(branch *branchRef, target *branchRef, findRenames int) *Step {
+func NewStep(branch *branchRef, target *branchRef, followRenames bool) *Step {
 	return &Step{
-		Branch:      branch,
-		Target:      target,
-		FindRenames: findRenames,
+		Branch:        branch,
+		Target:        target,
+		FollowRenames: followRenames,
 	}
 }
 
@@ -69,7 +67,7 @@ func (s *Step) Run() error {
 		return err
 	}
 
-	if !movesEnabled {
+	if !s.FollowRenames {
 		return s.commit()
 	}
 
@@ -101,8 +99,8 @@ func (s *Step) merge() error {
 	m := s.Target.Ref.Merge()
 	m.Strategy = st
 	m.NoCommit()
-	if s.FindRenames != 0 {
-		m.FindRenames(s.FindRenames)
+	if s.FollowRenames {
+		m.FindRenames(DefaultFindRenamePercentage)
 	}
 	if err := m.Run(); err != nil {
 		if err := resolve.Run(st); err != nil {

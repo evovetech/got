@@ -44,7 +44,7 @@ func NewMerger(args Args) (merger *Merger, err error) {
 		return
 	}
 
-	merger = &Merger{headRef, mergeRef, args.Strategy}
+	merger = &Merger{headRef, mergeRef, args}
 
 	log.Verbose.Printf("merger: %s\n", merger)
 	return
