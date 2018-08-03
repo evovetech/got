@@ -3,48 +3,68 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:f438d91be142877c3ad83157992c91de787ddfbddcc2a7da1ef6ef61606cadc4"
   name = "github.com/cheekybits/genny"
   packages = ["generic"]
+  pruneopts = "UT"
   revision = "9127e812e1e9e501ce899a18121d316ecb52e4ba"
 
 [[projects]]
+  digest = "1:d05ac3c3e2c3b1901c44c6489121cd79ec66d7297dc7ae9bd8fc71898a1b6515"
   name = "github.com/emirpasic/gods"
   packages = [
     "containers",
     "trees",
     "trees/avltree",
-    "utils"
+    "utils",
   ]
+  pruneopts = "UT"
   revision = "f6c17b524822278a87e3b3bd809fec33b51f5b46"
   version = "v1.9.0"
 
 [[projects]]
+  digest = "1:816a9a3902cc9d973a62475b829ab044cd46bbd7f064d317372ff868724cce89"
   name = "github.com/gyuho/goraph"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d460590d53a91b1f29347ca9b01d1e8c158cbeb2"
   version = "v2.0"
 
 [[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
+  pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:e3817fd507f0c1034309ed7b788a8663b9a9d9d9ba1012e53deb676b8d9d07bf"
   name = "github.com/spf13/cobra"
   packages = ["."]
+  pruneopts = "UT"
   revision = "3a7eb146bae5ebf9be598570234cde56c82d16cc"
 
 [[projects]]
+  digest = "1:1b21a2b4058a779f290c7341cd93267492e0ecea6c8b54f64a4a5fd7ff131034"
   name = "github.com/spf13/pflag"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
   version = "v1.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ed84ad99990aa99de963d826eb65a52e55b53671c8875b199e2dbc5d770d8731"
+  input-imports = [
+    "github.com/cheekybits/genny/generic",
+    "github.com/emirpasic/gods/containers",
+    "github.com/emirpasic/gods/trees/avltree",
+    "github.com/emirpasic/gods/utils",
+    "github.com/gyuho/goraph",
+    "github.com/spf13/cobra",
+    "github.com/spf13/pflag",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
