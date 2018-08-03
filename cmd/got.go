@@ -36,7 +36,13 @@ func init() {
 			Use:   "version",
 			Short: "Print the version",
 			Run: func(cmd *cobra.Command, args []string) {
-				fmt.Printf("got %s\n", got.Version)
+				buildInfo := got.GetBuildInfo()
+				fmt.Printf("got %s", buildInfo.Version())
+				if options.Verbose {
+					fmt.Printf(" : %s\n", buildInfo)
+				} else {
+					fmt.Println()
+				}
 			},
 		},
 	)

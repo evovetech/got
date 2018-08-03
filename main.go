@@ -19,11 +19,22 @@ package main
 import (
 	"os"
 
-	got "github.com/evovetech/got/cmd"
+	. "github.com/evovetech/got/cmd"
+	"github.com/evovetech/got/got"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func main() {
-	if err := got.Cmd.Execute(); err != nil {
+	// init
+	got.Init(version, commit, date)
+
+	// execute
+	if err := Cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
