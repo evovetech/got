@@ -40,19 +40,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e3817fd507f0c1034309ed7b788a8663b9a9d9d9ba1012e53deb676b8d9d07bf"
+  digest = "1:899be749b57d7af401a07e53bd818ad7c5369aaad861fb584555e282845fd196"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3a7eb146bae5ebf9be598570234cde56c82d16cc"
+  revision = "7c4570c3ebeb8129a1f7456d0908a8b676b6f9f1"
 
 [[projects]]
-  digest = "1:1b21a2b4058a779f290c7341cd93267492e0ecea6c8b54f64a4a5fd7ff131034"
+  digest = "1:9424f440bba8f7508b69414634aef3b2b3a877e522d8a4624692412805407bb7"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
-  version = "v1.0.0"
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
 
 [solve-meta]
   analyzer-name = "dep"
